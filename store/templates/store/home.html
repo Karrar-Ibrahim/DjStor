@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+    /* --- Hero Section Styles --- */
+    .hero-wrapper {
+        background: linear-gradient(135deg, #f0f4ff 0%, #eef2ff 100%);
+        border-radius: 24px;
+        overflow: hidden;
+        margin-top: 20px;
+        box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.1);
+        position: relative;
+    }
+    
+    /* دائرة خلفية جمالية */
+    .hero-circle {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+    }
+
+    .carousel-item { min-height: 500px; }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        padding: 3rem;
+    }
+
+    .hero-title {
+        font-weight: 800;
+        letter-spacing: -1px;
+        background: linear-gradient(to right, #1e3a8a, #2563eb);
+        /* تم إصلاح الخطأ هنا بإضافة الخاصية القياسية */
+        -webkit-background-clip: text;
+        background-clip: text; 
+        -webkit-text-fill-color: transparent;
+        line-height: 1.2;
+    }
+
+    /* Floating Image Animation */
+    .hero-img-container img {
+        max-height: 450px;
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2));
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* --- Category Cards --- */
+    .category-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(0,0,0,0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+    .category-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: #f8fafc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+    }
+    .category-card:hover .category-icon-wrapper {
+        background: var(--primary-color);
+        color: white;
+    }
+    .category-img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    /* --- Features Section --- */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    }
+    .feature-item {
+        text-align: center;
+        padding: 20px;
+        border-radius: 16px;
+        transition: 0.3s;
+    }
+    .feature-item:hover {
+        background: #f8fafc;
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 24px;
+        margin: 0 auto 15px;
+        display: inline-block;
+    }
+
+    /* --- Product Cards Redesigned --- */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+    }
+    
+    .modern-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .modern-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+        border-color: #e2e8f0;
+    }
+    
+    .card-badges {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .badge-sale { background: #ef4444; color: white; }
+    
+    .img-wrapper {
+        height: 240px;
+        padding: 30px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .img-wrapper img {
+        max-height: 100%;
+        max-width: 100%;
+        transition: transform 0.4s ease;
+    }
+    .modern-card:hover .img-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .card-content {
+        padding: 20px;
+    }
+    
+    .category-label {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .product-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 8px 0;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .price-wrapper {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .current-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+    .old-price {
+        color: #94a3b8;
+        text-decoration: line-through;
+        font-size: 0.9rem;
+    }
+    
+    .add-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: none;
+        background: #f1f5f9;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+    .add-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+</style>
+
+<div class="container pb-5">
+    
+    <!-- 1. Hero Section (السلايدر العصري) -->
+    <div id="heroCarousel" class="carousel slide hero-wrapper mb-5" data-bs-ride="carousel">
+        
+        <!-- Indicators -->
+        <div class="carousel-indicators mb-4">
+            {% for s in sliders %}
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %} bg-primary rounded-circle" style="width: 10px; height: 10px; margin: 0 5px;"></button>
+            {% endfor %}
+        </div>
+
+        <div class="carousel-inner">
+            {% for product in sliders %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="hero-circle"></div> <!-- الدائرة الخلفية -->
+                <div class="row align-items-center h-100 p-3 p-lg-5">
+                    <!-- Text Content -->
+                    <div class="col-lg-6 hero-content order-2 order-lg-1 text-center text-lg-end">
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-3 d-inline-block">
+                            <i class="bi bi-fire me-1"></i> عروض حصرية
+                        </span>
+                        <h1 class="hero-title display-4 mb-3">{{ product.name }}</h1>
+                        <p class="lead text-secondary mb-4 opacity-75">{{ product.description|truncatewords:15 }}</p>
+                        
+                        <div class="d-flex gap-3 justify-content-center justify-content-lg-start align-items-center">
+                            <h3 class="fw-bold text-dark m-0">{{ product.final_price|currency }} د.ع</h3>
+                            <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg hover-scale">
+                                اشتري الآن <i class="bi bi-arrow-left ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Image Content -->
+                    <div class="col-lg-6 hero-img-container order-1 order-lg-2 text-center mb-4 mb-lg-0">
+                        {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" class="img-fluid" alt="{{ product.name }}">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Default Slide -->
+            <div class="carousel-item active">
+                <div class="row align-items-center h-100 p-5 text-center">
+                    <div class="col-12">
+                        <h1 class="display-4 fw-bold text-primary">مرحباً بك في عشتار ستور</h1>
+                        <p class="lead text-muted">قم بإضافة منتجات مميزة من لوحة التحكم</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2. Features Section (المميزات) -->
+    <div class="features-grid mb-5">
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-truck"></i></div>
+            <h6 class="fw-bold mb-1">توصيل سريع</h6>
+            <small class="text-muted">لجميع المحافظات خلال 24 ساعة</small>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+            <h6 class="fw-bold mb-1">ضمان حقيقي</h6>
+            <small class="text-muted">استبدال فوري في حال العطل</small>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-headset"></i></div>
+            <h6 class="fw-bold mb-1">دعم فني</h6>
+            <small class="text-muted">فريق متخصص لخدمتك 24/7</small>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-credit-card"></i></div>
+            <h6 class="fw-bold mb-1">دفع آمن</h6>
+            <small class="text-muted">الدفع عند الاستلام أو زين كاش</small>
+        </div>
+    </div>
+
+    <!-- 3. Categories Grid (الأقسام) -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">تسوق حسب القسم</h3>
+                <p class="text-muted small mb-0">تصفح مجموعتنا الواسعة من المنتجات</p>
+            </div>
+        </div>
+        
+        <div class="row g-3">
+            {% for cat in categories %}
+            <div class="col-lg-2 col-md-3 col-6">
+                <a href="{% url 'category_list' cat.slug %}" class="text-decoration-none">
+                    <div class="category-card">
+                        <div class="category-icon-wrapper">
+                            {% if cat.image %}
+                                <img src="{{ cat.image.url }}" class="category-img" alt="{{ cat.name }}">
+                            {% else %}
+                                <i class="bi bi-grid fs-4 text-primary"></i>
+                            {% endif %}
+                        </div>
+                        <span class="fw-bold text-dark small">{{ cat.name }}</span>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 4. Latest Products (وصل حديثاً) -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h3 class="fw-bold m-0"><i class="bi bi-stars text-warning me-2"></i> وصل حديثاً</h3>
+            <a href="{% url 'shop' %}" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-bold">عرض الكل</a>
+        </div>
+        
+        <div class="product-grid">
+            {% for product in latest %}
+            <div class="modern-card">
+                <!-- Badges -->
+                <div class="card-badges">
+                    {% if product.discount_percentage > 0 %}
+                    <span class="badge-custom badge-sale">{{ product.discount_percentage }}% خصم</span>
+                    {% endif %}
+                </div>
+
+                <!-- Image -->
+                <a href="{% url 'product_detail' product.slug %}" class="img-wrapper">
+                    {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                    <div class="text-muted small">لا توجد صورة</div>
+                    {% endif %}
+                </a>
+
+                <!-- Content -->
+                <div class="card-content">
+                    <div class="category-label">{{ product.category.name }}</div>
+                    <h3 class="product-title">
+                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark stretched-link">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+                    
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div class="price-wrapper">
+                            <span class="current-price">{{ product.final_price|currency }}</span>
+                            {% if product.discount_percentage > 0 %}
+                            <span class="old-price">{{ product.price|currency }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Add to Cart Button -->
+                        <a href="{% url 'cart_add' product.id %}" class="add-btn position-relative" style="z-index: 2;" title="أضف للسلة">
+                            <i class="bi bi-plus-lg fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

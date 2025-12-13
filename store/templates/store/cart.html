@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">سلة التسوق</h2>
+    {% if cart|length > 0 %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>الإجمالي</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.price|currency }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.total_price|currency }}</td>
+                                <td>
+                                    <a href="{% url 'cart_remove' item.product.id %}" class="text-danger"><i class="bi bi-trash"></i></a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h4 class="mb-3">ملخص الطلب</h4>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="fw-bold">الإجمالي الكلي:</span>
+                        <span class="fw-bold text-primary">{{ cart.get_total_price|currency }} د.ع</span>
+                    </div>
+                    <a href="{% url 'checkout' %}" class="btn btn-success w-100">إتمام الطلب</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">السلة فارغة حالياً. <a href="{% url 'shop' %}">تسوق الآن</a></div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Gallery Styles --- */
+    .gallery-container {
+        position: sticky;
+        top: 100px;
+    }
+    .main-image-frame {
+        border-radius: 20px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-bottom: 15px;
+    }
+    .main-image-frame img {
+        max-height: 90%;
+        max-width: 90%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+    }
+    .main-image-frame:hover img { transform: scale(1.05); }
+
+    .thumbs-wrapper {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+    .thumb-item {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        flex-shrink: 0;
+    }
+    .thumb-item.active, .thumb-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .thumb-item img {
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    /* --- Product Info Styles --- */
+    .price-tag {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dark-text);
+    }
+    .old-price-tag {
+        text-decoration: line-through;
+        color: #9ca3af;
+        font-size: 1.2rem;
+    }
+    .discount-badge-lg {
+        background-color: #ffe4e6;
+        color: #e11d48;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* --- Feature Icons --- */
+    .feature-box {
+        text-align: center;
+        padding: 15px;
+        background-color: #f8fafc;
+        border-radius: 16px;
+        transition: 0.3s;
+    }
+    .feature-box:hover { background-color: #eef2ff; transform: translateY(-5px); }
+    .feature-box i { font-size: 1.8rem; color: var(--primary-color); margin-bottom: 5px; display: block; }
+
+    /* --- Wishlist Button --- */
+    .btn-wishlist {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        transition: 0.3s;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #ef4444;
+    }
+    .btn-wishlist:hover {
+        background-color: #fef2f2;
+        transform: scale(1.1);
+    }
+    .btn-wishlist.active {
+        background-color: #ef4444;
+        color: white;
+        border-color: #ef4444;
+    }
+
+    /* --- Reviews Styles --- */
+    .rating-css div { color: #ffe400; font-size: 30px; font-family: sans-serif; font-weight: 800; text-align: center; text-transform: uppercase; padding: 10px 0; }
+    .rating-css input { display: none; }
+    .rating-css input + label { font-size: 40px; text-shadow: 1px 1px 0 #ffe400; cursor: pointer; color: #ddd; }
+    .rating-css input:checked + label ~ label { color: #ddd; } 
+    .rating-css input:checked + label { color: #ffe400; }
+    /* Fix logic for RTL stars fill */
+    .star-icon { display: flex; flex-direction: row-reverse; justify-content: center; gap: 5px; }
+    .star-icon label:hover, .star-icon label:hover ~ label { color: #ffe400; }
+</style>
+
+<div class="container py-5">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-white p-3 rounded-4 shadow-sm d-inline-flex">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none fw-bold text-muted">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop' %}" class="text-decoration-none fw-bold text-muted">المتجر</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'category_list' product.category.slug %}" class="text-decoration-none fw-bold text-muted">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">{{ product.name|truncatechars:20 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- 1. Product Gallery (Right Side) -->
+        <div class="col-lg-6">
+            <div class="gallery-container">
+                <div class="main-image-frame shadow-sm">
+                    {% if product.discount_percentage > 0 %}
+                    <span class="position-absolute top-0 start-0 m-4 badge bg-danger fs-6 shadow-sm z-2">
+                        {{ product.discount_percentage }}% خصم
+                    </span>
+                    {% endif %}
+                    
+                    {% if product.main_image %}
+                        <img id="mainImage" src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="text-muted text-center">
+                            <i class="bi bi-image fs-1 d-block mb-2"></i> لا توجد صورة
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Thumbnails -->
+                <div class="thumbs-wrapper">
+                    {% if product.main_image %}
+                    <div class="thumb-item active" onclick="swapImage('{{ product.main_image.url }}', this)">
+                        <img src="{{ product.main_image.url }}">
+                    </div>
+                    {% endif %}
+                    
+                    {% for img in product.images.all %}
+                    <div class="thumb-item" onclick="swapImage('{{ img.image.url }}', this)">
+                        <img src="{{ img.image.url }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Product Details (Left Side) -->
+        <div class="col-lg-6">
+            <div class="ps-lg-3">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                        <i class="bi bi-tag-fill me-1"></i> {{ product.category.name }}
+                    </span>
+                    
+                    <div class="d-flex align-items-center text-warning ms-3">
+                        <i class="bi bi-star-fill me-1"></i>
+                        <span class="fw-bold text-dark">{{ avg_rating|default:"0.0" }}</span>
+                        <span class="text-muted small ms-1">({{ review_count }} تقييم)</span>
+                    </div>
+                </div>
+
+                <h1 class="fw-800 display-6 mb-3 text-dark">{{ product.name }}</h1>
+                
+                <!-- Price Section -->
+                <div class="bg-white p-4 rounded-4 border mb-4">
+                    <div class="d-flex align-items-end gap-3">
+                        <div class="price-tag">{{ product.final_price|currency }} <small class="fs-6 fw-normal">د.ع</small></div>
+                        {% if product.discount_percentage > 0 %}
+                            <div class="d-flex flex-column mb-2">
+                                <span class="old-price-tag">{{ product.price|currency }}</span>
+                                <span class="discount-badge-lg">وفرت {{ product.discount_percentage }}%</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-3">
+                        {% if product.is_in_stock %}
+                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> متوفر في المخزون</span>
+                            <span class="text-muted small">({{ product.stock_quantity }} قطعة)</span>
+                        {% else %}
+                            <span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> نفذت الكمية</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <h5 class="fw-bold border-bottom pb-2 d-inline-block">نظرة عامة</h5>
+                    <p class="text-secondary lh-lg mt-2">{{ product.description|linebreaks }}</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 mb-5 align-items-center">
+                    {% if product.is_in_stock %}
+                        <a href="{% url 'cart_add' product.id %}" class="btn btn-primary btn-lg flex-grow-1 rounded-pill shadow-lg hover-scale py-3 fw-bold">
+                            <i class="bi bi-bag-plus-fill me-2"></i> أضف للسلة
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary btn-lg flex-grow-1 rounded-pill py-3" disabled>نفذت الكمية</button>
+                    {% endif %}
+                    
+                    <!-- Wishlist Button -->
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'toggle_wishlist' product.id %}" class="btn-wishlist {% if is_in_wishlist %}active{% endif %}" title="المفضلة">
+                            {% if is_in_wishlist %}
+                                <i class="bi bi-heart-fill"></i>
+                            {% else %}
+                                <i class="bi bi-heart"></i>
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn-wishlist" title="سجل دخول للإضافة للمفضلة">
+                            <i class="bi bi-heart"></i>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Features Grid -->
+                <div class="row g-3">
+                    <div class="col-4">
+                        <div class="feature-box">
+                            <i class="bi bi-shield-check"></i>
+                            <small class="fw-bold d-block">ضمان أصلي</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="feature-box">
+                            <i class="bi bi-truck"></i>
+                            <small class="fw-bold d-block">شحن سريع</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="feature-box">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <small class="fw-bold d-block">إرجاع سهل</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Reviews Section (أسفل المنتج) -->
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4"><i class="bi bi-chat-quote-fill text-primary"></i> تقييمات العملاء</h3>
+            
+            <div class="row">
+                <!-- Review List -->
+                <div class="col-lg-7 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            {% if reviews %}
+                                <div class="vstack gap-4">
+                                    {% for review in reviews %}
+                                    <div class="d-flex gap-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 50px; height: 50px;">
+                                                {{ review.user.first_name|first|upper }}
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="fw-bold mb-0">{{ review.user.first_name }} {{ review.user.last_name }}</h6>
+                                                <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                                            </div>
+                                            <div class="text-warning mb-2 small">
+                                                {% for i in review.rating|range_loop %} <i class="bi bi-star-fill"></i> {% endfor %}
+                                            </div>
+                                            <p class="text-secondary mb-0 bg-light p-3 rounded-3 small">{{ review.comment }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-stars text-warning display-4 mb-3 d-block"></i>
+                                    <h5 class="fw-bold text-muted">لا توجد تقييمات حتى الآن</h5>
+                                    <p class="small text-secondary">كن أول من يشارك تجربته!</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Review Form -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 bg-light">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">أضف تقييمك</h5>
+                            {% if user.is_authenticated %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3 text-center bg-white p-3 rounded-3 border">
+                                    <label class="form-label fw-bold d-block mb-0 text-muted small">قيم المنتج</label>
+                                    <div class="rating-css">
+                                        <div class="star-icon">
+                                            <input type="radio" name="rating" value="5" id="rating5" checked>
+                                            <label for="rating5" class="bi bi-star-fill"></label>
+                                            <input type="radio" name="rating" value="4" id="rating4">
+                                            <label for="rating4" class="bi bi-star-fill"></label>
+                                            <input type="radio" name="rating" value="3" id="rating3">
+                                            <label for="rating3" class="bi bi-star-fill"></label>
+                                            <input type="radio" name="rating" value="2" id="rating2">
+                                            <label for="rating2" class="bi bi-star-fill"></label>
+                                            <input type="radio" name="rating" value="1" id="rating1">
+                                            <label for="rating1" class="bi bi-star-fill"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">تعليقك</label>
+                                    <textarea name="comment" class="form-control border-0 shadow-sm" rows="4" required placeholder="أخبرنا عن جودة المنتج..."></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">نشر التقييم</button>
+                            </form>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <p class="text-muted small mb-3">سجل دخولك لتتمكن من إضافة تقييم</p>
+                                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary w-100 rounded-pill">تسجيل الدخول</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Image Swap Script -->
+<script>
+    function swapImage(src, element) {
+        document.getElementById('mainImage').src = src;
+        // Update Active Class
+        document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+</script>
+{% endblock %}

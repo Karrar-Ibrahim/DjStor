@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+
+{% block title %}{{ title|default:"إدارة الكوبون" }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <!-- هنا التغيير: استخدام متغير title -->
+                    <h4 class="mb-0 fw-bold">{{ title|default:"إضافة كود خصم جديد" }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ field.label }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">كود الخصم (Code)</label>
+                            {{ form.code }}
+                            <div class="form-text">أحرف إنجليزية وأرقام فقط (مثال: OFF50)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">نسبة الخصم (%)</label>
+                            {{ form.discount }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-primary">تاريخ ووقت البداية</label>
+                                {{ form.valid_from }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-danger">تاريخ ووقت الانتهاء</label>
+                                {{ form.valid_to }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check bg-light p-3 rounded border">
+                            {{ form.active }}
+                            <label class="form-check-label fw-bold" for="{{ form.active.id_for_label }}">
+                                تفعيل الكوبون
+                            </label>
+                        </div>
+
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success fw-bold">حفظ البيانات</button>
+                            <a href="{% url 'dashboard_coupons' %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

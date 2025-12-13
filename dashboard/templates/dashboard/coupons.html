@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}إدارة الكوبونات{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>إدارة أكواد الخصم</h2>
+        <a href="{% url 'dashboard_coupon_add' %}" class="btn btn-success shadow-sm">
+            <i class="bi bi-plus-lg"></i> إضافة كوبون جديد
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="p-3">الكود</th>
+                            <th>الخصم</th>
+                            <th>يبدأ في</th>
+                            <th>ينتهي في</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for coupon in coupons %}
+                        <tr>
+                            <td class="p-3">
+                                <span class="fw-bold text-primary font-monospace fs-5">{{ coupon.code }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark fs-6">%{{ coupon.discount }}</span>
+                            </td>
+                            <td class="text-muted small">
+                                <i class="bi bi-clock"></i> {{ coupon.valid_from|date:"Y-m-d H:i" }}
+                            </td>
+                            <td class="text-muted small">
+                                <i class="bi bi-clock"></i> {{ coupon.valid_to|date:"Y-m-d H:i" }}
+                            </td>
+                            <td>
+                                {% if coupon.active %}
+                                    <span class="badge bg-success rounded-pill">فعال</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill">غير فعال</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <!-- زر التعديل الجديد -->
+                                    <a href="{% url 'dashboard_coupon_edit' coupon.id %}" class="btn btn-sm btn-outline-primary" title="تعديل">
+                                        <i class="bi bi-pencil"></i> تعديل
+                                    </a>
+                                    
+                                    <!-- زر الحذف -->
+                                    <a href="{% url 'dashboard_coupon_delete' coupon.id %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('هل أنت متأكد من حذف هذا الكوبون نهائياً؟');"
+                                       title="حذف">
+                                        <i class="bi bi-trash"></i> حذف
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-ticket-perforated display-4 d-block mb-3"></i>
+                                لا توجد كوبونات مضافة حالياً.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

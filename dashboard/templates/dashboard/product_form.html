@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}إدارة المنتج{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        {% if title %}{{ title }}{% else %}بيانات المنتج{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- عرض الأخطاء إن وجدت -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> خطأ في البيانات</h5>
+                            <ul class="mb-0">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">القسم</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">اسم المنتج</label>
+                                {{ form.name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">الرابط (Slug)</label>
+                            {{ form.slug }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">الوصف</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">السعر</label>
+                                {{ form.price }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">نسبة الخصم (%)</label>
+                                {{ form.discount_percentage }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">الكمية</label>
+                                {{ form.stock_quantity }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">الصورة الرئيسية (الغلاف)</label>
+                            {{ form.main_image }}
+                        </div>
+
+                        <div class="mb-3 bg-light p-3 rounded border">
+                            <label class="form-label fw-bold text-primary">
+                                <i class="bi bi-images"></i> صور المعرض الإضافية
+                            </label>
+                            <input type="file" name="more_images" class="form-control" multiple accept="image/*">
+                            <div class="form-text">يمكنك تحديد أكثر من صورة في وقت واحد (اضغط Ctrl أثناء الاختيار).</div>
+                        </div>
+
+
+
+                        <div class="d-flex gap-4 border p-3 rounded bg-light mb-3">
+                            <!-- خيار التفعيل -->
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                    منتج نشط (يظهر في المتجر)
+                                </label>
+                            </div>
+
+                            <!-- خيار السلايدر (هذا هو الجديد) -->
+                            <div class="form-check">
+                                {{ form.is_featured }}
+                                <label class="form-check-label fw-bold text-primary" for="{{ form.is_featured.id_for_label }}">
+                                    منتج مميز (يظهر في السلايدر الرئيسي)
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <button type="submit" class="btn btn-success px-4">حفظ</button>
+                        <a href="{% url 'dashboard_products' %}" class="btn btn-outline-secondary">إلغاء</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

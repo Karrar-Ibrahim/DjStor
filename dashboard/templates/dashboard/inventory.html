@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block title %}جرد المخزون التفصيلي{% endblock %}
+
+{% block content %}
+<style>
+    /* --- تنسيقات الصفحة الحديثة --- */
+    .page-header {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        padding: 40px 30px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    /* دوائر زخرفية في الخلفية */
+    .header-circle {
+        position: absolute;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .c1 { width: 200px; height: 200px; top: -50px; left: -50px; }
+    .c2 { width: 300px; height: 300px; bottom: -100px; right: -50px; }
+
+    /* كروت الإحصائيات */
+    .stat-badge {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 15px 25px;
+        border-radius: 15px;
+        min-width: 180px;
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    .stat-badge:hover {
+        transform: translateY(-5px);
+        background: rgba(255,255,255,0.15);
+    }
+    .stat-value { font-size: 1.8rem; font-weight: 800; margin-bottom: 0; line-height: 1.2; }
+    .stat-label { font-size: 0.85rem; opacity: 0.8; font-weight: normal; }
+
+    /* الجدول */
+    .inventory-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+        background: white;
+        overflow: hidden;
+    }
+    .table thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+    .product-thumb {
+        width: 45px;
+        height: 45px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        background: #fff;
+        padding: 2px;
+    }
+    
+    /* شارات الحالة */
+    .status-dot {
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 5px;
+    }
+    .dot-success { background-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+    .dot-warning { background-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+    .dot-danger { background-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
+
+    /* تنسيق البحث */
+    .search-box {
+        position: relative;
+        max-width: 300px;
+    }
+    .search-box input {
+        border-radius: 50px;
+        padding-right: 40px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+    .search-box i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    /* --- تنسيقات الطباعة --- */
+    @media print {
+        body * { visibility: hidden; }
+        .print-area, .print-area * { visibility: visible; }
+        .print-area { position: absolute; left: 0; top: 0; width: 100%; color: black !important; }
+        .no-print { display: none !important; }
+        
+        .page-header { 
+            background: white !important; 
+            color: black !important; 
+            box-shadow: none; 
+            padding: 0; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid black;
+        }
+        .header-circle { display: none; }
+        .stat-badge { 
+            border: 1px solid #000; 
+            color: black !important; 
+            background: none !important;
+            backdrop-filter: none;
+        }
+        .inventory-card { box-shadow: none; border: none; }
+        .table { border: 1px solid #000; width: 100%; }
+        .table th, .table td { border: 1px solid #ddd !important; padding: 8px; }
+        .status-dot { box-shadow: none; border: 1px solid #000; }
+        
+        /* تلوين الصفوف للطباعة */
+        tr:nth-child(even) { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+    }
+</style>
+
+<div class="container py-4 print-area">
+    
+    <!-- Header Section -->
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+        <div class="header-circle c1"></div>
+        <div class="header-circle c2"></div>
+        
+        <div class="position-relative z-2">
+            <h2 class="fw-bold mb-1"><i class="bi bi-clipboard-data me-2"></i> جرد المخزون التفصيلي</h2>
+            <p class="mb-0 opacity-75">تاريخ التقرير: {{ current_date|date:"Y-m-d h:i A" }}</p>
+        </div>
+
+        <div class="d-flex gap-3 position-relative z-2 mt-3 mt-lg-0">
+            <div class="stat-badge">
+                <h3 class="stat-value">{{ total_products_count }}</h3>
+                <span class="stat-label">مادة في المخزن</span>
+            </div>
+            <div class="stat-badge">
+                <h3 class="stat-value">{{ total_stock_value|floatformat:0|intcomma }}</h3>
+                <span class="stat-label">قيمة المخزون (د.ع)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Toolbar (Search & Print) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="tableSearch" class="form-control" placeholder="بحث عن منتج...">
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{% url 'dashboard_reports' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-right"></i> عودة
+            </a>
+            <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm">
+                <i class="bi bi-printer-fill me-2"></i> طباعة القائمة
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="inventory-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" width="50">#</th>
+                        <th>المنتج</th>
+                        <th>القسم</th>
+                        <th>سعر الوحدة</th>
+                        <th class="text-center">الكمية الحالية</th>
+                        <th class="text-center">إجمالي المباع</th>
+                        <th>القيمة الإجمالية</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td class="text-center text-muted small">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" class="product-thumb me-3 no-print">
+                                {% else %}
+                                <div class="product-thumb me-3 bg-light d-flex align-items-center justify-content-center text-muted no-print">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold text-dark">{{ product.name }}</div>
+                                    <div class="small text-muted font-monospace">{{ product.slug }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ product.category.name }}</span></td>
+                        <td class="font-monospace">{{ product.price|floatformat:0|intcomma }}</td>
+                        
+                        <!-- الكمية -->
+                        <td class="text-center">
+                            {% if product.stock_quantity == 0 %}
+                                <span class="fw-bold text-danger fs-5">0</span>
+                            {% elif product.stock_quantity < 5 %}
+                                <span class="fw-bold text-warning fs-5">{{ product.stock_quantity }}</span>
+                            {% else %}
+                                <span class="fw-bold text-success fs-5">{{ product.stock_quantity }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-center fw-bold text-primary">{{ product.total_sold|default:0 }}</td>
+                        
+                        <!-- القيمة = الكمية * السعر -->
+                        <td class="fw-bold text-dark">
+                            {% widthratio product.stock_quantity 1 product.price as item_val %}
+                            {{ item_val|floatformat:0|intcomma }}
+                        </td>
+
+                        <td>
+                            {% if product.stock_quantity == 0 %}
+                                <div class="d-flex align-items-center text-danger fw-bold small">
+                                    <span class="status-dot dot-danger"></span> نفذت الكمية
+                                </div>
+                            {% elif product.stock_quantity < 5 %}
+                                <div class="d-flex align-items-center text-warning fw-bold small">
+                                    <span class="status-dot dot-warning"></span> منخفض
+                                </div>
+                            {% else %}
+                                <div class="d-flex align-items-center text-success fw-bold small">
+                                    <span class="status-dot dot-success"></span> متوفر
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Footer for Print -->
+    <div class="text-center mt-5 d-none d-print-block">
+        <div class="row">
+            <div class="col-6 text-end pe-5">
+                <p>توقيع مسؤول المخزن: ____________________</p>
+            </div>
+            <div class="col-6 text-start ps-5">
+                <p>توقيع الإدارة: ____________________</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- سكربت بسيط للبحث الفوري -->
+<script>
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
+        let searchValue = this.value.toLowerCase();
+        let tableRows = document.querySelectorAll('#inventoryTable tbody tr');
+        
+        tableRows.forEach(row => {
+            let rowText = row.innerText.toLowerCase();
+            if(rowText.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+{% endblock %}

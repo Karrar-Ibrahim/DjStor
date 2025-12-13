@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}المنتجات{% endblock %}
+
+{% block content %}
+<style>
+    /* تنسيقات القائمة الجانبية المتفرعة */
+    .filter-card {
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .filter-header {
+        background-color: white;
+        padding: 15px 20px;
+        font-weight: 800;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    /* عناصر القائمة */
+    .cat-item {
+        position: relative;
+        border-bottom: 1px solid #f8f9fa;
+        background: white;
+    }
+    .cat-link-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        transition: 0.2s;
+    }
+    .cat-link-wrapper:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* الرابط النصي */
+    .cat-link {
+        text-decoration: none;
+        color: #4b5563;
+        font-weight: 600;
+        flex-grow: 1;
+        font-size: 0.95rem;
+    }
+    .cat-link.active {
+        color: var(--primary-color);
+        font-weight: 800;
+    }
+
+    /* زر التوسيع (+) */
+    .toggle-btn {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #9ca3af;
+        transition: 0.3s;
+    }
+    .toggle-btn:hover {
+        background-color: #eef2ff;
+        color: var(--primary-color);
+    }
+    
+    /* القائمة الفرعية */
+    .submenu {
+        display: none; /* مخفية افتراضياً */
+        background-color: #fcfcfc;
+        border-top: 1px solid #f0f0f0;
+        padding-right: 15px; /* إزاحة للداخل (RTL) */
+    }
+    .submenu a {
+        display: block;
+        padding: 10px 20px 10px 10px;
+        text-decoration: none;
+        color: #6b7280;
+        font-size: 0.9rem;
+        border-bottom: 1px dashed #eee;
+        transition: 0.2s;
+    }
+    .submenu a:hover {
+        color: var(--primary-color);
+        padding-right: 15px; /* حركة بسيطة */
+    }
+    .submenu a.active {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    
+    /* أيقونة حالة الفتح */
+    .toggle-btn.expanded i {
+        transform: rotate(180deg); /* تدوير عند الفتح إذا كانت سهماً، أو تغيير الأيقونة */
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar: Categories -->
+        <div class="col-lg-3 mb-4">
+            <div class="filter-card">
+                <div class="filter-header text-primary">
+                    <i class="bi bi-grid-fill"></i> الفئات والأقسام
+                </div>
+                
+                <div class="list-group list-group-flush p-0">
+                    <!-- رابط الكل -->
+                    <div class="cat-item">
+                        <div class="cat-link-wrapper">
+                            <a href="{% url 'shop' %}" class="cat-link {% if not category %}active{% endif %}">
+                                كل المنتجات
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- حلقة الفئات الرئيسية -->
+                    {% for c in categories %}
+                    <div class="cat-item">
+                        <div class="cat-link-wrapper">
+                            <!-- رابط الفئة الرئيسية -->
+                            <a href="{% url 'category_list' c.slug %}" class="cat-link {% if category.slug == c.slug %}active{% endif %}">
+                                {{ c.name }}
+                            </a>
+                            
+                            <!-- زر التوسيع يظهر فقط إذا كان هناك أبناء -->
+                            {% if c.children.all %}
+                            <span class="toggle-btn" onclick="toggleSubmenu('sub-{{ c.id }}', this)">
+                                <i class="bi bi-plus-lg"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- القائمة الفرعية (الأبناء) -->
+                        {% if c.children.all %}
+                        <div id="sub-{{ c.id }}" class="submenu">
+                            {% for child in c.children.all %}
+                                <a href="{% url 'category_list' child.slug %}" class="{% if category.slug == child.slug %}active{% endif %}">
+                                    <i class="bi bi-arrow-left-short text-muted"></i> {{ child.name }}
+                                </a>
+                                <!-- يمكن هنا إضافة مستوى ثالث بنفس المنطق إذا أردت -->
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Products -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold m-0">
+                    {% if category %}
+                        {{ category.name }} <span class="text-muted fs-6 fw-normal">({{ products.count }} منتج)</span>
+                    {% else %}
+                        جميع المنتجات
+                    {% endif %}
+                </h3>
+            </div>
+
+            {% if products %}
+            <div class="row g-3">
+                {% for product in products %}
+                <div class="col-md-4 col-sm-6">
+                    <!-- نفس تصميم كرت المنتج المحسن في الصفحة الرئيسية -->
+                    <div class="card product-card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="position-relative bg-white p-4 text-center" style="height: 220px;">
+                            {% if product.discount_percentage > 0 %}
+                            <span class="position-absolute top-0 end-0 m-3 badge bg-danger rounded-pill shadow-sm">
+                                {{ product.discount_percentage }}% خصم
+                            </span>
+                            {% endif %}
+                            
+                            <a href="{% url 'product_detail' product.slug %}">
+                                {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" class="img-fluid h-100" style="object-fit: contain; transition: 0.3s;" alt="{{ product.name }}">
+                                {% else %}
+                                <div class="h-100 d-flex align-items-center justify-content-center text-muted bg-light rounded">لا توجد صورة</div>
+                                {% endif %}
+                            </a>
+                        </div>
+                        
+                        <div class="card-body d-flex flex-column p-3">
+                            <small class="text-muted fw-bold mb-1" style="font-size: 0.8rem;">{{ product.category.name }}</small>
+                            <h5 class="card-title fw-bold text-dark text-truncate mb-3">
+                                <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">{{ product.name }}</a>
+                            </h5>
+                            
+                            <div class="mt-auto d-flex justify-content-between align-items-end">
+                                <div>
+                                    {% if product.discount_percentage > 0 %}
+                                        <small class="text-decoration-line-through text-muted d-block" style="font-size: 0.85rem;">{{ product.price|currency }}</small>
+                                    {% endif %}
+                                    <span class="fw-bold text-primary fs-5">{{ product.final_price|currency }}</span> <span class="small text-muted">د.ع</span>
+                                </div>
+                                <a href="{% url 'cart_add' product.id %}" class="btn btn-light rounded-circle shadow-sm text-primary" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-plus-lg fw-bold"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted opacity-25 mb-3"></i>
+                <h4 class="text-muted fw-bold">عذراً، لا توجد منتجات في هذا القسم حالياً.</h4>
+                <a href="{% url 'shop' %}" class="btn btn-outline-primary mt-3 rounded-pill px-4">تصفح كل المنتجات</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript للتحكم في القائمة -->
+<script>
+    function toggleSubmenu(submenuId, btn) {
+        var submenu = document.getElementById(submenuId);
+        var icon = btn.querySelector('i');
+        
+        if (submenu.style.display === "block") {
+            submenu.style.display = "none";
+            icon.classList.remove('bi-dash-lg');
+            icon.classList.add('bi-plus-lg');
+            btn.classList.remove('expanded');
+        } else {
+            submenu.style.display = "block";
+            icon.classList.remove('bi-plus-lg');
+            icon.classList.add('bi-dash-lg');
+            btn.classList.add('expanded');
+        }
+    }
+
+    // كود إضافي لفتح القائمة تلقائياً إذا كنا داخل صفحة فرعية
+    document.addEventListener("DOMContentLoaded", function() {
+        // نبحث عن أي رابط فرعي مفعل
+        var activeSubLink = document.querySelector('.submenu a.active');
+        if (activeSubLink) {
+            // نصل إلى القائمة الأب ونظهرها
+            var parentSubmenu = activeSubLink.closest('.submenu');
+            if (parentSubmenu) {
+                parentSubmenu.style.display = 'block';
+                // نغير أيقونة الزر المقابل
+                var parentItem = parentSubmenu.closest('.cat-item');
+                var toggleBtn = parentItem.querySelector('.toggle-btn i');
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('bi-plus-lg');
+                    toggleBtn.classList.add('bi-dash-lg');
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

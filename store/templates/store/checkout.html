@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}إتمام الطلب والدفع{% endblock %}
+
+{% block content %}
+<style>
+    /* تحسينات CSS مخصصة لهذه الصفحة */
+    .checkout-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .checkout-header {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .summary-card {
+        background-color: #fff;
+        border: 1px solid #eee;
+    }
+    .product-list-item {
+        border-bottom: 1px dashed #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    .product-list-item:last-child {
+        border-bottom: none;
+    }
+    .total-row {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        border-color: #0d6efd;
+    }
+</style>
+
+<div class="container py-5">
+    <!-- مسار التنقل -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cart_detail' %}" class="text-decoration-none">سلة التسوق</a></li>
+            <li class="breadcrumb-item active" aria-current="page">إتمام الطلب</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- العمود الأيمن: نموذج البيانات -->
+        <div class="col-lg-8">
+            <div class="card checkout-card mb-4">
+                <div class="checkout-header d-flex align-items-center gap-2">
+                    <i class="bi bi-geo-alt-fill text-primary fs-4"></i>
+                    <h5 class="mb-0 fw-bold">عنوان الشحن ومعلومات التواصل</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="checkout-form">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-muted small">{{ field.label }}</label>
+                                <div class="input-group">
+                                    <!-- إضافة أيقونات للحقول لتحسين الشكل -->
+                                    <span class="input-group-text bg-light border-end-0">
+                                        {% if 'الاسم' in field.label %}<i class="bi bi-person"></i>
+                                        {% elif 'الهاتف' in field.label %}<i class="bi bi-phone"></i>
+                                        {% else %}<i class="bi bi-house-door"></i>{% endif %}
+                                    </span>
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
+                                </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                <div class="form-text text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- ملاحظة الأمان -->
+                        <div class="alert alert-light border mt-4 d-flex align-items-center gap-3">
+                            <i class="bi bi-shield-check text-success fs-2"></i>
+                            <div>
+                                <small class="fw-bold d-block">تسوق آمن 100%</small>
+                                <small class="text-muted">بياناتك الشخصية محمية ولن يتم مشاركتها مع أي طرف ثالث.</small>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 mt-2 fw-bold shadow-sm hover-scale">
+                            تأكيد الطلب وإتمامه <i class="bi bi-check-circle ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- العمود الأيسر: ملخص الطلب والكوبون -->
+        <div class="col-lg-4">
+            <!-- كرت ملخص الطلب -->
+            <div class="card checkout-card summary-card sticky-top" style="top: 90px; z-index: 10;">
+                <div class="checkout-header">
+                    <h5 class="mb-0 fw-bold">ملخص الفاتورة</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- قائمة المنتجات -->
+                    <div class="mb-4" style="max-height: 300px; overflow-y: auto;">
+                        {% for item in cart %}
+                        <div class="product-list-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark border">{{ item.quantity }}x</span>
+                                <span class="text-truncate" style="max-width: 150px;">{{ item.product.name }}</span>
+                            </div>
+                            <span class="fw-bold">{{ item.total_price|currency }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- قسم الكوبون -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">هل لديك كود خصم؟</label>
+                        <form action="{% url 'coupon_apply' %}" method="post">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="code" class="form-control" placeholder="أدخل الكود هنا" required>
+                                <button class="btn btn-dark" type="submit">تطبيق</button>
+                            </div>
+                        </form>
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if 'كود' in message.message %}
+                                <div class="small mt-2 {% if message.tags == 'success' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ message }}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <!-- الحسابات -->
+                    <div class="d-flex justify-content-between mb-2 text-muted">
+                        <span>مجموع المنتجات</span>
+                        <span>{{ cart.get_total_price|currency }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 text-danger">
+                        <span><i class="bi bi-truck"></i> كلفة التوصيل</span>
+                        <span>{{ delivery_fee|currency }}</span>
+                    </div>
+
+                    <!-- عرض الخصم إذا وجد -->
+                    {% if cart.coupon %}
+                    <div class="alert alert-success d-flex justify-content-between align-items-center p-2 mt-2 mb-2">
+                        <div>
+                            <i class="bi bi-tag-fill"></i> خصم ({{ cart.coupon.code }})
+                        </div>
+                        <span class="fw-bold">- {{ cart.get_discount|currency }}</span>
+                    </div>
+                    <div class="text-end mb-2">
+                        <a href="{% url 'coupon_remove' %}" class="text-danger small text-decoration-none">
+                            <i class="bi bi-x-circle"></i> إزالة الكوبون
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- الإجمالي النهائي -->
+                    <div class="total-row d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-5">الإجمالي الكلي</span>
+                        <span class="fw-bold fs-4 text-primary">
+                            {{ cart.get_total_price_after_discount|add:delivery_fee|currency }} د.ع
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

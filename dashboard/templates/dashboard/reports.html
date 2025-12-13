@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block title %}التقارير والجرد{% endblock %}
+
+{% block content %}
+<style>
+    /* تنسيقات الصفحة */
+    .report-card {
+        border: none;
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        transition: transform 0.3s;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+    }
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+    .bg-light-primary { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .bg-light-success { background: rgba(25, 135, 84, 0.1); color: #198754; }
+    .bg-light-warning { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+    /* تنسيقات الطباعة */
+    @media print {
+        body * { visibility: hidden; }
+        .print-area, .print-area * { visibility: visible; }
+        .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+        .card { border: 1px solid #ddd !important; box-shadow: none !important; }
+        .badge { border: 1px solid #000; color: #000 !important; background: none !important; }
+        .report-header { display: block !important; margin-bottom: 30px; text-align: center; }
+    }
+    .report-header { display: none; } /* مخفي في الشاشة العادية */
+</style>
+
+<div class="container py-5 print-area">
+    
+    <!-- ترويسة الطباعة (تظهر فقط في الورق) -->
+    <div class="report-header">
+        <h2>تقرير متجر عشتار ستور</h2>
+        <p>تاريخ التقرير: {{ current_date|date:"Y-m-d H:i" }}</p>
+        <hr>
+    </div>
+
+    <!-- العنوان وأدوات التحكم -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2 class="fw-bold mb-1">التقارير والجرد</h2>
+            <p class="text-muted">نظرة شاملة على أداء المتجر</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-dark shadow-sm">
+                <i class="bi bi-printer-fill me-2"></i> طباعة
+            </button>
+            <a href="{% url 'export_reports_excel' %}" class="btn btn-success shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i> تصدير Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- شريط الفلترة -->
+    <div class="card report-card mb-4 no-print">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted">السنة</label>
+                    <select name="year" class="form-select">
+                        <option value="all">كل السنوات</option>
+                        {% for y in available_years %}
+                        <option value="{{ y.year }}" {% if selected_year|stringformat:"s" == y.year|stringformat:"s" %}selected{% endif %}>
+                            {{ y.year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted">الشهر</label>
+                    <select name="month" class="form-select">
+                        <option value="all">كل الشهور</option>
+                        <option value="1" {% if selected_month == '1' %}selected{% endif %}>يناير</option>
+                        <option value="2" {% if selected_month == '2' %}selected{% endif %}>فبراير</option>
+                        <option value="3" {% if selected_month == '3' %}selected{% endif %}>مارس</option>
+                        <option value="4" {% if selected_month == '4' %}selected{% endif %}>أبريل</option>
+                        <option value="5" {% if selected_month == '5' %}selected{% endif %}>مايو</option>
+                        <option value="6" {% if selected_month == '6' %}selected{% endif %}>يونيو</option>
+                        <option value="7" {% if selected_month == '7' %}selected{% endif %}>يوليو</option>
+                        <option value="8" {% if selected_month == '8' %}selected{% endif %}>أغسطس</option>
+                        <option value="9" {% if selected_month == '9' %}selected{% endif %}>سبتمبر</option>
+                        <option value="10" {% if selected_month == '10' %}selected{% endif %}>أكتوبر</option>
+                        <option value="11" {% if selected_month == '11' %}selected{% endif %}>نوفمبر</option>
+                        <option value="12" {% if selected_month == '12' %}selected{% endif %}>ديسمبر</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-filter"></i> تصفية النتائج
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- كروت الملخص -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card report-card h-100">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">إجمالي الإيرادات (للفترة المحددة)</p>
+                        <h3 class="fw-bold text-success mb-0">{{ totals.total_revenue|default:0|currency }} د.ع</h3>
+                    </div>
+                    <div class="icon-box bg-light-success">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card report-card h-100">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">عدد الطلبات المكتملة</p>
+                        <h3 class="fw-bold text-primary mb-0">{{ totals.total_count|default:0 }} طلب</h3>
+                    </div>
+                    <div class="icon-box bg-light-primary">
+                        <i class="bi bi-bag-check-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول المبيعات -->
+    <h4 class="mb-3 fw-bold border-bottom pb-2">
+        <i class="bi bi-graph-up-arrow text-primary"></i> 
+        {% if report_type == 'daily' %}تفاصيل المبيعات اليومية{% else %}تفاصيل المبيعات الشهرية{% endif %}
+    </h4>
+    
+    <div class="card report-card mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>التاريخ / الفترة</th>
+                            <th>عدد الطلبات</th>
+                            <th>الإيرادات</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sales_data %}
+                        <tr>
+                            <td class="fw-bold text-primary">
+                                {% if report_type == 'daily' %}
+                                    {{ item.day|date:"l, d F Y" }}
+                                {% else %}
+                                    {{ item.period|date:"F Y" }}
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ item.count }} طلبات</span></td>
+                            <td class="text-success fw-bold">{{ item.revenue|currency }}</td>
+                            <td><i class="bi bi-check-circle-fill text-success"></i> مكتمل</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-4 text-muted">لا توجد مبيعات في الفترة المحددة.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول المخزون -->
+<!-- في ملف reports.html -->
+
+<!-- فاصل جمالي -->
+<hr class="my-5 border-secondary opacity-10">
+
+<!-- ترويسة قسم المخزون -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-boxes me-2 text-warning"></i> جرد المخزون الحالي</h3>
+        <p class="text-muted small mb-0">نظرة سريعة على الكميات المتوفرة (أقل من 5 قطع تظهر باللون الأصفر)</p>
+    </div>
+    
+    <!-- الزر المحسن -->
+    <a href="{% url 'dashboard_inventory' %}" class="btn btn-dark shadow hover-scale rounded-pill px-4">
+        <i class="bi bi-fullscreen me-2"></i> فتح الجرد في صفحة كاملة
+    </a>
+</div>
+
+<div class="card report-card">
+    <!-- ... بقية الجدول ... -->
+
+
+    <!-- تذييل الطباعة -->
+    <div class="report-header mt-5 text-muted small">
+        <p>نهاية التقرير - تم استخراجه بواسطة: {{ user.first_name }} {{ user.last_name }}</p>
+    </div>
+
+</div>
+{% endblock %}

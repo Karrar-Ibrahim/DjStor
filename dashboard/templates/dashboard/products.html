@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}إدارة المنتجات{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>إدارة المنتجات</h2>
+        <!-- زر الإضافة (هذا مكانه صحيح هنا) -->
+        <a href="{% url 'dashboard_product_add' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> إضافة منتج جديد
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الصورة</th>
+                            <th>الاسم</th>
+                            <th>القسم</th>
+                            <th>السعر</th>
+                            <th>الكمية</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th> <!-- عمود الإجراءات -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- بداية الحلقة -->
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" width="50" height="50" style="object-fit: contain;" class="rounded border">
+                                {% else %}
+                                <span class="text-muted">لا توجد</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category.name }}</td>
+                            <td>{{ product.final_price|currency }} د.ع</td>
+                            <td>{{ product.stock_quantity }}</td>
+                            <td>
+                                {% if product.is_active %}
+                                <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                              
+                                {% if perms.store.change_product %}
+                                <a href="{% url 'dashboard_product_edit' product.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+
+                                
+                                {% if perms.store.delete_product %}
+                                <a href="{% url 'dashboard_product_delete' product.id %}" 
+                                  class="btn btn-sm btn-outline-danger"
+                                  onclick="return confirm('حذف؟');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">لا توجد منتجات حتى الآن.</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- نهاية الحلقة -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

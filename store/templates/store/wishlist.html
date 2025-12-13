@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}قائمة المفضلة{% endblock %}
+
+{% block content %}
+<style>
+    /* تنسيق خاص لكارت المفضلة */
+    .wishlist-card {
+        border: 1px solid #f0f0f0;
+        border-radius: 16px;
+        transition: 0.3s;
+        background: white;
+        overflow: hidden;
+        position: relative;
+    }
+    .wishlist-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    .img-wrap {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background-color: #fff;
+    }
+    .img-wrap img {
+        max-height: 100%;
+        max-width: 100%;
+        transition: 0.3s;
+    }
+    .wishlist-card:hover .img-wrap img { transform: scale(1.05); }
+    
+    /* زر الحذف */
+    .btn-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #fee2e2;
+        color: #ef4444;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: 0.2s;
+        z-index: 2;
+    }
+    .btn-remove:hover { background: #ef4444; color: white; }
+</style>
+
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <h2 class="fw-bold m-0"><i class="bi bi-heart-fill text-danger me-2"></i> قائمة المفضلة</h2>
+        <span class="badge bg-light text-dark ms-3 fs-6">{{ wishlist_items.count }} منتجات</span>
+    </div>
+
+    {% if wishlist_items %}
+    <div class="row g-4">
+        {% for item in wishlist_items %}
+        <div class="col-lg-3 col-md-4 col-6">
+            <div class="wishlist-card h-100">
+                <!-- زر الحذف (يستخدم نفس دالة التبديل toggle) -->
+                <a href="{% url 'toggle_wishlist' item.product.id %}" class="btn-remove" title="حذف من المفضلة">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+
+                <a href="{% url 'product_detail' item.product.slug %}" class="text-decoration-none">
+                    <div class="img-wrap">
+                        {% if item.product.main_image %}
+                        <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                        <div class="text-muted small">لا توجد صورة</div>
+                        {% endif %}
+                    </div>
+                </a>
+
+                <div class="p-3">
+                    <div class="text-muted small mb-1">{{ item.product.category.name }}</div>
+                    <h6 class="fw-bold text-dark text-truncate mb-2">
+                        <a href="{% url 'product_detail' item.product.slug %}" class="text-decoration-none text-dark">{{ item.product.name }}</a>
+                    </h6>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="fw-bold text-primary">{{ item.product.final_price|currency }} د.ع</span>
+                        
+                        {% if item.product.is_in_stock %}
+                        <a href="{% url 'cart_add' item.product.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-cart-plus"></i> إضافة
+                        </a>
+                        {% else %}
+                        <span class="badge bg-secondary">غير متوفر</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-3">
+            <i class="bi bi-heartbreak display-1 text-muted opacity-25"></i>
+        </div>
+        <h4 class="fw-bold text-muted">قائمة المفضلة فارغة</h4>
+        <p class="text-secondary">لم تقم بإضافة أي منتجات للمفضلة بعد.</p>
+        <a href="{% url 'shop' %}" class="btn btn-primary rounded-pill px-4 mt-3">تصفح المنتجات</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

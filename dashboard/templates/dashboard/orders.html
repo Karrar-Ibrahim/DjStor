@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}إدارة الطلبات{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">إدارة الطلبات</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>التاريخ</th>
+                            <th>الإجمالي</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.full_name }}</td>
+                            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ order.total_amount|currency }} د.ع</td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">قيد المعالجة</span>
+                                {% elif order.status == 'completed' %}
+                                <span class="badge bg-success">مكتمل</span>
+                                {% else %}
+                                <span class="badge bg-danger">ملغي</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'dashboard_order_detail' order.id %}" class="btn btn-sm btn-primary">
+                                    عرض التفاصيل
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">لا توجد طلبات حتى الآن.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

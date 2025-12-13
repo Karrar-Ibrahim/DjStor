@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block title %}تفاصيل الطلب #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'user_orders' %}">طلباتي</a></li>
+            <li class="breadcrumb-item active" aria-current="page">طلب #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Header -->
+                <div class="card-header bg-primary text-white p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold">طلب رقم #{{ order.id }}</h5>
+                        <small class="opacity-75">{{ order.created_at|date:"d F Y, H:i A" }}</small>
+                    </div>
+                    <div>
+                        {% if order.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">قيد المعالجة</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="badge bg-success">مكتمل</span>
+                        {% else %}
+                            <span class="badge bg-danger">ملغي</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Products -->
+                    <h6 class="fw-bold mb-3 border-bottom pb-2">المنتجات</h6>
+                    {% for item in order.items.all %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if item.product.main_image %}
+                            <img src="{{ item.product.main_image.url }}" width="50" height="50" class="rounded border object-fit-cover">
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ item.product.name }}</h6>
+                                <small class="text-muted">{{ item.quantity }} x {{ item.price|currency }}</small>
+                            </div>
+                        </div>
+                        <div class="fw-bold">{{ item.get_cost|currency }}</div>
+                    </div>
+                    {% endfor %}
+
+                    <hr class="my-4">
+
+                    <!-- Summary -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="fw-bold mb-2">عنوان التوصيل</h6>
+                            <p class="text-muted small mb-1">{{ order.full_name }}</p>
+                            <p class="text-muted small mb-1">{{ order.phone }}</p>
+                            <p class="text-muted small mb-0">{{ order.address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-light p-3 rounded-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">مبلغ التوصيل</span>
+                                    <span class="fw-bold small">{{ order.delivery_fee|currency }}</span>
+                                </div>
+                                {% if order.discount_amount > 0 %}
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span class="small">الخصم</span>
+                                    <span class="fw-bold small">- {{ order.discount_amount|currency }}</span>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                                    <span class="fw-bold">الإجمالي الكلي</span>
+                                    <span class="fw-bold text-primary fs-5">{{ order.total_amount|currency }} د.ع</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

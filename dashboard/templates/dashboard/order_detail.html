@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}تفاصيل الطلب #{{ order.id }}{% endblock %}
+
+{% block content %}
+<style>
+    /* تنسيقات خاصة بالشاشة العادية */
+    .invoice-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+    .invoice-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #eee;
+        padding: 20px;
+    }
+    .invoice-footer {
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
+    .status-card {
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    /* --- تنسيقات الطباعة (المهمة جداً) --- */
+    @media print {
+        /* إخفاء كل شيء في الصفحة */
+        body * {
+            visibility: hidden;
+        }
+        /* إخفاء الأزرار والنافبار والقائمة الجانبية */
+        .no-print, nav, header, footer, .btn {
+            display: none !important;
+        }
+        
+        /* إظهار منطقة الفاتورة فقط */
+        #printable-invoice, #printable-invoice * {
+            visibility: visible;
+        }
+        
+        /* ضبط موقع الفاتورة لتملأ الورقة */
+        #printable-invoice {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            border: none;
+            box-shadow: none;
+        }
+        
+        /* تحسين الألوان للطباعة */
+        .bg-light, .invoice-header, .invoice-footer {
+            background-color: #fff !important; /* توفير الحبر */
+            border: 1px solid #ddd !important;
+        }
+        .text-primary, .text-success, .text-danger {
+            color: black !important; /* طباعة سوداء واضحة */
+        }
+    }
+</style>
+
+<div class="container py-5">
+    
+    <!-- شريط الأدوات العلوي (لا يظهر في الطباعة) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2 class="fw-bold mb-1">إدارة الطلب #{{ order.id }}</h2>
+            <p class="text-muted">تاريخ الطلب: {{ order.created_at|date:"Y-m-d H:i A" }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-dark">
+                <i class="bi bi-printer-fill"></i> طباعة الوصل
+            </button>
+            <a href="{% url 'dashboard_orders' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right"></i> عودة للطلبات
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- القسم الأيمن: الفاتورة (قابل للطباعة) -->
+        <div class="col-lg-8">
+            <div class="card invoice-card shadow-sm mb-4" id="printable-invoice">
+                
+                <!-- ترويسة الفاتورة -->
+                <div class="invoice-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold text-primary mb-1"><i class="bi bi-cpu-fill"></i> عشتار ستور</h4>
+                        <small class="text-muted">فاتورة ضريبية مبسطة</small>
+                    </div>
+                    <div class="text-end">
+                        <h5 class="fw-bold mb-0">فاتورة #{{ order.id }}</h5>
+                        <small class="text-muted">{{ order.created_at|date:"d/m/Y" }}</small>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- معلومات العميل -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <h6 class="fw-bold text-uppercase text-muted small">تفاصيل العميل</h6>
+                            <p class="mb-1 fw-bold">{{ order.full_name }}</p>
+                            <p class="mb-1">{{ order.phone }}</p>
+                            <p class="mb-0 text-muted small">{{ order.address }}</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h6 class="fw-bold text-uppercase text-muted small">حالة الطلب</h6>
+                            {% if order.status == 'pending' %}
+                            <span class="badge bg-warning text-dark px-3 py-2">قيد المعالجة</span>
+                            {% elif order.status == 'completed' %}
+                            <span class="badge bg-success px-3 py-2">مكتمل</span>
+                            {% else %}
+                            <span class="badge bg-danger px-3 py-2">ملغي</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- جدول المنتجات -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>المنتج</th>
+                                    <th class="text-center">السعر</th>
+                                    <th class="text-center">الكمية</th>
+                                    <th class="text-end">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <span class="fw-bold">{{ item.product.name }}</span>
+                                    </td>
+                                    <td class="text-center">{{ item.price|currency }}</td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end fw-bold">{{ item.get_cost|currency }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- الحسابات النهائية (Footer) -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <!-- ملاحظات (يمكن إضافتها لاحقاً) -->
+                            <div class="p-3 bg-light rounded border border-dashed">
+                                <small class="fw-bold">ملاحظات:</small><br>
+                                <small class="text-muted">شكراً لتسوقكم معنا. في حال وجود مشكلة يرجى التواصل خلال 24 ساعة.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="text-end">مجموع المنتجات:</td>
+                                        <!-- معادلة لعرض مجموع المنتجات الصافي -->
+                                        <td class="text-end fw-bold">{{ order.total_amount|add:order.discount_amount|subtract:order.delivery_fee|currency }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end">كلفة التوصيل:</td>
+                                        <td class="text-end text-danger">{{ order.delivery_fee|currency }}</td>
+                                    </tr>
+                                    {% if order.discount_amount > 0 %}
+                                    <tr>
+                                        <td class="text-end">خصم الكوبون ({{ order.coupon.code|default:"--" }}):</td>
+                                        <td class="text-end text-success">- {{ order.discount_amount|currency }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr class="border-top">
+                                        <td class="text-end pt-3 fs-5 fw-bold">الإجمالي الكلي:</td>
+                                        <td class="text-end pt-3 fs-5 fw-bold text-primary">{{ order.total_amount|currency }} د.ع</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تذييل الفاتورة -->
+                <div class="invoice-footer text-center text-muted small">
+                    <p class="mb-0">تم إصدار هذه الفاتورة إلكترونياً من نظام عشتار ستور</p>
+                    <p class="mb-0">www.techstore-iq.com | 07700000000</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- القسم الأيسر: التحكم (لا يظهر في الطباعة) -->
+        <div class="col-lg-4 no-print">
+            
+            <!-- تحديث الحالة -->
+            <div class="status-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">تحديث حالة الطلب</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">اختر الحالة الجديدة</label>
+                        <select name="status" class="form-select form-select-lg">
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>قيد المعالجة 🟠</option>
+                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>مكتمل (تم التسليم) 🟢</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>ملغي 🔴</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">حفظ التغييرات</button>
+                </form>
+            </div>
+
+            <!-- معلومات إضافية -->
+            <div class="status-card p-4">
+                <h6 class="fw-bold border-bottom pb-2 mb-3">معلومات سريعة</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">العميل:</span>
+                        <span>
+                            {% if order.user %}
+                            <span class="badge bg-info text-dark">مسجل</span>
+                            {% else %}
+                            <span class="badge bg-secondary">زائر</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">عدد المواد:</span>
+                        <span>{{ order.items.count }}</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">طريقة الدفع:</span>
+                        <span>دفع عند الاستلام</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

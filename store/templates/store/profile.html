@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}إعدادات الحساب{% endblock %}
+
+{% block content %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        padding: 40px 0;
+        color: white;
+        margin-bottom: -50px;
+        border-radius: 0 0 20px 20px;
+    }
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: white;
+        color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        border: 4px solid rgba(255,255,255,0.3);
+        margin: 0 auto;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .profile-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+        background: white;
+        overflow: hidden;
+        height: 100%;
+    }
+    .card-header-custom {
+        background: white;
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-control {
+        border-radius: 10px;
+        padding: 10px 15px;
+        border: 1px solid #eee;
+        background-color: #fcfcfc;
+    }
+    .form-control:focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        border-color: var(--primary-color);
+    }
+</style>
+
+<!-- ترويسة الصفحة -->
+<div class="profile-header text-center pb-5">
+    <div class="container">
+        <div class="avatar-circle mb-3">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+        </div>
+        <h3 class="fw-bold">{{ user.first_name }} {{ user.last_name }}</h3>
+        <p class="opacity-75">{{ user.email }}</p>
+    </div>
+</div>
+
+<div class="container py-5" style="margin-top: 20px;">
+    <div class="row g-4">
+        
+        <!-- العمود الأيمن: البيانات الشخصية -->
+        <div class="col-lg-7">
+            <div class="profile-card">
+                <div class="card-header-custom text-primary">
+                    <i class="bi bi-person-vcard fs-4"></i> المعلومات الشخصية
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_info" value="1">
+                        
+                        <div class="row g-3">
+    
+                        <!-- حقل اسم المستخدم (الجديد) -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">اسم المستخدم</label>
+                            {{ u_form.username }}
+                            <div class="form-text small text-muted">لا يمكن تغيير اسم المستخدم.</div>
+                        </div>
+
+                        <!-- باقي الحقول كما هي -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">الاسم الأول</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">الاسم الأخير</label>
+                            {{ u_form.last_name }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">البريد الإلكتروني</label>
+                            {{ u_form.email }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">رقم الهاتف</label>
+                            {{ p_form.phone }}
+                        </div>
+                    </div>
+
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-save me-2"></i> حفظ التغييرات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- العمود الأيسر: الأمان وكلمة المرور -->
+        <div class="col-lg-5">
+            <div class="profile-card">
+                <div class="card-header-custom text-danger">
+                    <i class="bi bi-shield-lock fs-4"></i> الأمان وكلمة المرور
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="change_password" value="1">
+                        
+                        {% for field in pass_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            <!-- إضافة كلاس للبوتستراب يدوياً لحقول الباسورد -->
+                            <script>
+                                var input = document.getElementById("{{ field.id_for_label }}");
+                                if (input) { input.classList.add("form-control"); }
+                            </script>
+                            {% if field.help_text %}
+                            <div class="form-text small text-muted">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
+                                تغيير كلمة المرور
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- زر العودة -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'home' %}" class="text-decoration-none text-muted fw-bold">
+                    <i class="bi bi-arrow-right"></i> العودة للرئيسية
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
