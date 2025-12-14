@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}عشتار ستور | التكنولوجيا بين يديك{% endblock %}</title>
+    
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;       /* أزرق عصري */
+            --secondary-color: #3f37c9;     /* أزرق غامق */
+            --accent-color: #f72585;        /* وردي للعروض */
+            --dark-text: #2b2d42;
+            --light-bg: #f8f9fa;
+            --footer-bg: #111827;           /* رمادي غامق جداً للفوتر */
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Navbar Styles --- */
+        .navbar {
+            background-color: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            padding: 12px 0;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--primary-color) !important;
+            letter-spacing: -0.5px;
+        }
+        .nav-link {
+            font-weight: 700;
+            color: #4b5563 !important;
+            margin: 0 5px;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color) !important;
+        }
+        
+        /* Nested Dropdown Styles */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-weight: 600;
+            color: #555;
+            transition: 0.2s;
+        }
+        .dropdown-item:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Submenu Logic */
+        .dropdown-menu .dropdown-submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -7px;
+            right: auto; /* RTL Support */
+            min-width: 200px;
+        }
+        /* Show submenu on hover */
+        .dropdown-menu > li:hover > .dropdown-submenu {
+            display: block;
+        }
+        /* RTL Arrow Alignment */
+        .dropend .dropdown-toggle::after {
+            margin-right: 0.5em;
+            margin-left: 0;
+            vertical-align: middle;
+        }
+
+        /* Search Bar */
+        .search-wrapper input {
+            border-radius: 50px;
+            background-color: #f1f3f5;
+            border: 1px solid transparent;
+            padding: 10px 20px;
+            transition: 0.3s;
+        }
+        .search-wrapper input:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+        }
+        .search-wrapper button {
+            border-radius: 50px;
+            padding: 0 20px;
+            margin-right: -50px;
+            z-index: 5;
+        }
+
+        /* Icons & Buttons */
+        .icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            border: 1px solid #eee;
+            color: #555;
+            transition: 0.3s;
+            position: relative;
+        }
+        .icon-btn:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        .badge-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: var(--footer-bg);
+            color: #9ca3af;
+            margin-top: auto;
+            padding-top: 60px;
+        }
+        footer h5 {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+        footer h5::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: 0.3s;
+            display: block;
+            margin-bottom: 12px;
+        }
+        footer a:hover {
+            color: #fff;
+            padding-right: 5px;
+        }
+        
+        /* Social Icons */
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            margin-left: 10px;
+            transition: 0.3s;
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+        .social-link.fb:hover { background-color: #1877F2; transform: translateY(-3px); }
+        .social-link.ig:hover { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); transform: translateY(-3px); }
+        .social-link.web:hover { background-color: var(--primary-color); transform: translateY(-3px); }
+
+        /* Content Wrapper */
+        .main-wrapper { flex-grow: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+                <i class="bi bi-cpu-fill"></i>
+                <span>عشتار ستور</span>
+            </a>
+
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Menu -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 mx-4">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">الرئيسية</a></li>
+                    
+                    <!-- التصنيفات المتفرعة (Nested Categories) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-grid-fill"></i> التصنيفات
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item fw-bold" href="{% url 'shop' %}">عرض كل المنتجات</a></li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            {% for category in nav_categories %}
+                                {% if category.children.all %}
+                                    <li class="dropend position-relative">
+                                        <a class="dropdown-item dropdown-toggle d-flex justify-content-between align-items-center" href="{% url 'category_list' category.slug %}">
+                                            {{ category.name }}
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-submenu">
+                                            {% for subcategory in category.children.all %}
+                                                {% if subcategory.children.all %}
+                                                    <li class="dropend position-relative">
+                                                        <a class="dropdown-item dropdown-toggle" href="{% url 'category_list' subcategory.slug %}">
+                                                            {{ subcategory.name }}
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-submenu">
+                                                            {% for subsub in subcategory.children.all %}
+                                                            <li><a class="dropdown-item" href="{% url 'category_list' subsub.slug %}">{{ subsub.name }}</a></li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </li>
+                                                {% else %}
+                                                    <li><a class="dropdown-item" href="{% url 'category_list' subcategory.slug %}">{{ subcategory.name }}</a></li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{% url 'category_list' category.slug %}">{{ category.name }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" href="{% url 'offers' %}" style="color: var(--accent-color) !important;">
+                            <i class="bi bi-fire"></i> العروض
+                        </a>
+                    </li>
+
+                    <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">من نحن</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">اتصل بنا</a></li>
+
+                    {% if user.is_authenticated and user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-bold" href="{% url 'dashboard_home' %}">
+                            <i class="bi bi-speedometer2"></i> لوحة التحكم
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- Search -->
+                <form class="d-flex search-wrapper flex-grow-1 mx-lg-4" action="{% url 'shop' %}" style="max-width: 400px;">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="q" placeholder="ابحث عن منتج..." aria-label="Search">
+                        <button class="btn text-primary border-0" type="submit"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+
+                <!-- Icons & Auth -->
+                <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                    <!-- Cart -->
+                    <a href="{% url 'cart_detail' %}" class="icon-btn text-decoration-none">
+                        <i class="bi bi-bag"></i>
+                        {% if cart|length > 0 %}
+                        <span class="badge-count">{{ cart|length }}</span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Wishlist Icon -->
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'wishlist_view' %}" class="icon-btn text-decoration-none me-2" title="المفضلة">
+                        <i class="bi bi-heart"></i>
+                    </a>
+                    {% endif %}
+                    
+
+                    <!-- User -->
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-dark rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.first_name|default:user.username }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2 mt-2 rounded-3">
+                                <li><a class="dropdown-item rounded-2" href="{% url 'profile' %}">حسابي</a></li>
+                                <li><a class="dropdown-item rounded-2" href="{% url 'user_orders' %}">طلباتي</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button class="dropdown-item rounded-2 text-danger">تسجيل خروج</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">دخول</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts -->
+    {% if messages %}
+    <div class="container mt-3 position-absolute top-0 start-50 translate-middle-x" style="z-index: 1050; margin-top: 80px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 rounded-3">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container pb-5">
+            <div class="row gy-4">
+                <!-- About -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="d-flex align-items-center gap-2 text-white">
+                        <i class="bi bi-cpu-fill text-primary"></i> عشتار ستور
+                    </h5>
+                    <p class="small" style="line-height: 1.8;">
+                        وجهتك الأولى للتكنولوجيا الحديثة. نقدم أفضل الإلكترونيات الأصلية بضمان حقيقي وتوصيل سريع لكافة المحافظات.
+                    </p>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6">
+                    <h5>روابط مهمة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}">الرئيسية</a></li>
+                        <li><a href="{% url 'shop' %}">جميع المنتجات</a></li>
+                        <li><a href="{% url 'offers' %}">العروض الحصرية</a></li>
+                        <li><a href="#">من نحن</a></li>
+                    </ul>
+                </div>
+
+                <!-- Ishtar Host -->
+                <div class="col-lg-3 col-md-6">
+                    <h5>شركاء النجاح</h5>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://ishtarhost.com/" target="_blank" class="d-flex align-items-center gap-2 text-white fw-bold">
+                                <i class="bi bi-globe2 text-primary"></i> عشتار هوست
+                            </a>
+                        </li>
+                        <li class="mt-3 text-white-50 small">استضافة مواقع وحلول رقمية متكاملة لنمو أعمالك.</li>
+                    </ul>
+                </div>
+
+                <!-- Contact & Social -->
+                <div class="col-lg-3 col-md-6">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled small text-white-50 mb-4">
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2 text-primary"></i> بغداد، الكرادة، العراق</li>
+                        <li class="mb-2"><i class="bi bi-telephone me-2 text-primary"></i> 0783 300 3554</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2 text-primary"></i> info@ishtarhost.com</li>
+                    </ul>
+                    
+                    <!-- Social Media -->
+                    <div class="d-flex">
+                        <a href="https://www.facebook.com/ishtar.host/" target="_blank" class="social-link fb" title="فيسبوك">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://www.instagram.com/ishtar.host/" target="_blank" class="social-link ig" title="انستغرام">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="https://ishtarhost.com/" target="_blank" class="social-link web" title="الموقع الرسمي">
+                            <i class="bi bi-globe"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="py-3 text-center" style="background-color: #0b0f19; border-top: 1px solid #1f2937;">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center">
+                <p class="mb-0 small text-secondary">&copy; 2025 جميع الحقوق محفوظة لـ <strong>عشتار ستور</strong>.</p>
+                <p class="mb-0 small text-secondary">
+                    Powered by <a href="https://ishtarhost.com/" target="_blank" class="text-decoration-none text-primary fw-bold">Ishtar Host</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

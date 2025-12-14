@@ -3,96 +3,64 @@
 {% block title %}إدارة الفئات{% endblock %}
 
 {% block content %}
+
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>إدارة الفئات (Categories)</h2>
-        
-        <!-- التحقق من صلاحية الإضافة -->
-        {% if perms.store.add_category %}
-        <a href="{% url 'dashboard_category_add' %}" class="btn btn-success shadow-sm">
-            <i class="bi bi-plus-lg"></i> إضافة فئة جديدة
-        </a>
-        {% endif %}
-    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 fw-bold">{{ title|default:"إدارة الفئة" }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            يوجد خطأ في البيانات: {{ form.errors }}
+                        </div>
+                    {% endif %}
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>الصورة</th>
-                            <th>الاسم</th>
-                            <th>تابع لـ (الفئة الرئيسية)</th>
-                            <th>الرابط (Slug)</th>
-                            <th>عدد المنتجات</th>
-                            <th style="width: 150px;">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category in categories %}
-                        <tr>
-                            <td>
-                                {% if category.image %}
-                                <img src="{{ category.image.url }}" width="50" height="50" class="rounded border" style="object-fit: cover;">
-                                {% else %}
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 50px; height: 50px;">
-                                    <i class="bi bi-image"></i>
-                                </div>
-                                {% endif %}
-                            </td>
-                            
-                            <td class="fw-bold">{{ category.name }}</td>
-                            
-                            <!-- عرض الفئة الأب -->
-                            <td>
-                                {% if category.parent %}
-                                    <span class="badge bg-primary bg-opacity-10 text-primary">
-                                        <i class="bi bi-arrow-return-left"></i> {{ category.parent.name }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary">قسم رئيسي</span>
-                                {% endif %}
-                            </td>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
 
-                            <td class="text-muted small font-monospace">{{ category.slug }}</td>
-                            <td><span class="badge bg-info text-dark">{{ category.products.count }} منتج</span></td>
-                            
-                            <td>
-                                <div class="d-flex gap-2">
-                                    
-                                    <!-- التحقق من صلاحية التعديل -->
-                                    {% if perms.store.change_category %}
-                                    <a href="{% url 'dashboard_category_edit' category.id %}" class="btn btn-sm btn-outline-primary" title="تعديل">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    {% endif %}
+                        <!-- اسم القسم -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اسم القسم (بالعربية)</label>
+                            {{ form.name }}
+                        </div>
 
-                                    <!-- التحقق من صلاحية الحذف -->
-                                    {% if perms.store.delete_category %}
-                                    <a href="{% url 'dashboard_category_delete' category.id %}" 
-                                       class="btn btn-sm btn-outline-danger" 
-                                       onclick="return confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف جميع المنتجات والفئات الفرعية المرتبطة به!');"
-                                       title="حذف">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                    {% endif %}
-                                    
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="bi bi-grid display-4 d-block mb-3"></i>
-                                لا توجد فئات حالياً.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        <!-- الرابط المختصر -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">الرابط المختصر (Slug)</label>
+                            {{ form.slug }}
+                        </div>
+
+                        <!-- الفئة الأب (تفرع من) -->
+                        <div class="mb-3 p-3 bg-light rounded border">
+                            <label class="form-label fw-bold text-primary">تابع للقسم الرئيسي (اختياري)</label>
+                            {{ form.parent }}
+                            <div class="form-text mt-1 small">
+                                اختر قسماً من القائمة إذا كان هذا قسماً فرعياً (مثال: اختر "هواتف" ليكون هذا "آيفون").
+                                <br>اتركه (---------) إذا كان قسماً رئيسياً.
+                            </div>
+                        </div>
+
+                        <!-- الصورة -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">صورة القسم</label>
+                            {{ form.image }}
+                        </div>
+
+                        <hr>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success fw-bold py-2">حفظ</button>
+                            <a href="{% url 'dashboard_categories' %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

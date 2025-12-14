@@ -5,8 +5,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-change-me'
+
+#DEBUG = False
 DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ishtarstor.store','www.ishtarstor.store']
+
+ALLOWED_HOSTS = ['ishtarstor.store','www.ishtarstor.store','127.0.0.1','localhost','172.16.0.21']
+#CSRF_TRUSTED_ORIGINS = ['https://ishtarstor.store', 'https://www.ishtarstor.store']
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://ishtarstor.store",
+    "https://www.ishtarstor.store",
+]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -16,7 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize', # Useful for currency formatting
-    
+
     # Custom Apps
     'store',
     'dashboard',
@@ -26,6 +36,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'arabic_electronics_store.middleware.FixCommaSeparatedOriginMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -67,7 +78,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'staticfiles']
+#STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -84,12 +97,16 @@ DECIMAL_SEPARATOR = '.'
 
 
 
-# settings.py
 
-# إعدادات البريد الإلكتروني (مثال لـ Gmail)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ishtarhost1@gmail.com'  # ضع ايميلك هنا
-EMAIL_HOST_PASSWORD = 'upes ysut ecgr aneu' # ضع كلمة مرور التطبيق هنا
+#SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+#USE_X_FORWARDED_HOST = True
+
+#CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
+#SECURE_SSL_REDIRECT = True
+
+
+AUTHENTICATION_BACKENDS = [
+    'store.backends.EmailOrUsernameBackend',  # الخلفية المخصصة التي أنشأناها
+    'django.contrib.auth.backends.ModelBackend',  # الخلفية الافتراضية (احتياط)
+]

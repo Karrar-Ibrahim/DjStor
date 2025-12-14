@@ -14,7 +14,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 # استيراد المودلز
 from store.models import Product, Category, Order, Coupon
 from django.contrib.auth.models import User
-
+from store.models import ProductImage # تأكد من وجود هذا الاستيراد
 # استيراد الفورم
 from .forms import ProductForm, CategoryForm, CouponForm, StaffUserForm
 
@@ -343,3 +343,34 @@ def export_reports_excel(request):
 
     wb.save(response)
     return response
+
+
+
+
+@permission_required('store.change_product', raise_exception=True)
+def delete_product_image(request, image_id):
+    # جلب الصورة
+    img = get_object_or_404(ProductImage, id=image_id)
+    product_id = img.product.id # نحتفظ برقم المنتج لنعود إليه
+    
+    # حذف الصورة من الملفات ومن قاعدة البيانات
+    img.delete()
+    
+    messages.success(request, "تم حذف الصورة من المعرض.")
+    return redirect('dashboard_product_edit', pk=product_id)
+
+
+
+
+@permission_required('store.change_product', raise_exception=True)
+def delete_main_image(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    
+    # حذف الصورة من الملفات إذا كانت موجودة
+    if product.main_image:
+        product.main_image.delete(save=False)
+        product.main_image = None # تفريغ الحقل في قاعدة البيانات
+        product.save()
+        messages.success(request, "تم حذف الصورة الرئيسية للمنتج.")
+    
+    return redirect('dashboard_product_edit', pk=pk)

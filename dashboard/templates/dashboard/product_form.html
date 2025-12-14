@@ -1,35 +1,198 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
-{% block title %}إدارة المنتج{% endblock %}
+
+{% block title %}{{ title|default:"إدارة المنتج" }}{% endblock %}
 
 {% block content %}
+<style>
+    /* --- تخصيصات الفورم العصرية --- */
+    .form-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        background: #fff;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .form-header {
+        background: #fff;
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .section-title {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-title i { color: var(--primary-color); }
+
+    /* حقول الإدخال */
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 10px 15px;
+        transition: all 0.3s;
+        background-color: #f8fafc;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+    }
+
+    /* منطقة رفع الصور */
+    .upload-box {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        background-color: #f8fafc;
+        transition: 0.3s;
+        position: relative;
+    }
+    .upload-box:hover {
+        border-color: var(--primary-color);
+        background-color: #eff6ff;
+    }
+    .upload-box input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .upload-icon {
+        font-size: 2rem;
+        color: #94a3b8;
+        margin-bottom: 10px;
+    }
+
+    /* مفاتيح التبديل (Toggles) */
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 15px;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+    .toggle-switch:hover { border-color: var(--primary-color); }
+    .toggle-checkbox { display: none; }
+    .toggle-label {
+        width: 50px;
+        height: 26px;
+        background: #cbd5e1;
+        border-radius: 50px;
+        position: relative;
+        transition: 0.3s;
+    }
+    .toggle-label::after {
+        content: '';
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 20px; height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    .toggle-checkbox:checked + .toggle-label { background: var(--primary-color); }
+    .toggle-checkbox:checked + .toggle-label::after { left: calc(100% - 23px); }
+
+    /* مصغرات الصور */
+    .img-preview-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 5px;
+        position: relative;
+        background: #fff;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .img-preview-card img {
+        max-height: 100%;
+        max-width: 100%;
+        border-radius: 6px;
+    }
+    .btn-delete-img {
+        position: absolute;
+        top: -8px; right: -8px;
+        width: 24px; height: 24px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: 0.2s;
+        text-decoration: none;
+    }
+    .btn-delete-img:hover { background: #dc2626; color: white; transform: scale(1.1); }
+</style>
+
 <div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h4 class="mb-0">
-                        {% if title %}{{ title }}{% else %}بيانات المنتج{% endif %}
-                    </h4>
-                </div>
-                <div class="card-body">
-                    
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Header Actions -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">{{ title }}</h2>
+                <p class="text-muted small mb-0">قم بملء البيانات التالية بدقة لعرض المنتج في المتجر.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'dashboard_products' %}" class="btn btn-light border fw-bold">إلغاء</a>
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                    <i class="bi bi-check-lg me-2"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>
+
+        <!-- عرض الأخطاء -->
+        {% if form.errors %}
+        <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+            <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> يرجى تصحيح الأخطاء التالية:</h6>
+            <ul class="mb-0 small">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            
+            <!-- العمود الأيمن: المعلومات الأساسية -->
+            <div class="col-lg-8">
+                <!-- 1. المعلومات العامة -->
+                <div class="form-card">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="bi bi-info-circle-fill"></i> المعلومات الأساسية</h5>
                         
-                        <!-- عرض الأخطاء إن وجدت -->
-                        {% if form.errors %}
-                        <div class="alert alert-danger" role="alert">
-                            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> خطأ في البيانات</h5>
-                            <ul class="mb-0">
-                                {% for field in form %}
-                                    {% for error in field.errors %}
-                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
+                        <div class="mb-3">
+                            <label class="form-label">اسم المنتج</label>
+                            {{ form.name }}
                         </div>
-                        {% endif %}
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -37,76 +200,150 @@
                                 {{ form.category }}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">اسم المنتج</label>
-                                {{ form.name }}
+                                <label class="form-label">الرابط المختصر (Slug)</label>
+                                {{ form.slug }}
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">الرابط (Slug)</label>
-                            {{ form.slug }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">الوصف</label>
+                        <div class="mb-0">
+                            <label class="form-label">وصف المنتج</label>
                             {{ form.description }}
                         </div>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">السعر</label>
+                <!-- 2. إدارة الصور -->
+                <div class="form-card">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="bi bi-images"></i> الوسائط والصور</h5>
+                        
+                        <!-- الصورة الرئيسية -->
+                        <div class="mb-4">
+                            <label class="form-label d-block">الصورة الرئيسية (الغلاف)</label>
+                            
+                            {% if form.instance.main_image %}
+                            <div class="d-flex align-items-center gap-3 mb-3 p-2 border rounded bg-light">
+                                <img src="{{ form.instance.main_image.url }}" class="rounded bg-white border" style="width: 60px; height: 60px; object-fit: contain;">
+                                <div class="flex-grow-1">
+                                    <span class="d-block fw-bold text-dark small">الصورة الحالية</span>
+                                    <span class="text-muted small">سيتم استبدالها عند رفع صورة جديدة</span>
+                                </div>
+                                <a href="{% url 'dashboard_main_image_delete' form.instance.pk %}" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('حذف الصورة الرئيسية؟')">حذف</a>
+                            </div>
+                            {% endif %}
+
+                            <div class="upload-box">
+                                <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                                <h6 class="fw-bold mb-1">اضغط هنا لرفع الصورة الرئيسية</h6>
+                                <p class="text-muted small mb-0">أو اسحب الصورة وأفلتها هنا</p>
+                                {{ form.main_image }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4 border-light">
+
+                        <!-- معرض الصور -->
+                        <div>
+                            <label class="form-label d-block">معرض الصور الإضافية</label>
+                            
+                            <!-- الصور الحالية -->
+                            {% if form.instance.pk and form.instance.images.all %}
+                                <div class="row g-2 mb-3">
+                                    {% for img in form.instance.images.all %}
+                                    <div class="col-md-3 col-4">
+                                        <div class="img-preview-card">
+                                            <img src="{{ img.image.url }}">
+                                            <a href="{% url 'dashboard_image_delete' img.id %}" class="btn-delete-img" onclick="return confirm('حذف هذه الصورة؟')"><i class="bi bi-x-lg"></i></a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <!-- رفع جديد -->
+                            <div class="upload-box" style="border-style: dotted;">
+                                <i class="bi bi-images upload-icon text-primary opacity-50"></i>
+                                <h6 class="fw-bold mb-1 text-primary">إضافة صور للمعرض</h6>
+                                <p class="text-muted small mb-0">يمكنك تحديد صور متعددة في وقت واحد</p>
+                                <input type="file" name="more_images" multiple accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- العمود الأيسر: الإعدادات والأسعار -->
+            <div class="col-lg-4">
+                
+                <!-- 1. الحالة والظهور -->
+                <div class="form-card">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="bi bi-eye-fill"></i> الحالة والظهور</h5>
+                        
+                        <!-- Active Toggle -->
+                        <label class="toggle-switch">
+                            <div>
+                                <span class="d-block fw-bold text-dark">منتج نشط</span>
+                                <span class="text-muted small">يظهر للعملاء في المتجر</span>
+                            </div>
+                            {{ form.is_active }}
+                            <span class="toggle-label"></span>
+                        </label>
+
+                        <!-- Featured Toggle -->
+                        <label class="toggle-switch">
+                            <div>
+                                <span class="d-block fw-bold text-dark">منتج مميز</span>
+                                <span class="text-muted small">يظهر في السلايدر الرئيسي</span>
+                            </div>
+                            {{ form.is_featured }}
+                            <span class="toggle-label"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 2. التسعير والمخزون -->
+                <div class="form-card">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="bi bi-tag-fill"></i> السعر والمخزون</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">السعر الأصلي (د.ع)</label>
+                            <div class="input-group">
                                 {{ form.price }}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">نسبة الخصم (%)</label>
-                                {{ form.discount_percentage }}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">الكمية</label>
-                                {{ form.stock_quantity }}
+                                <span class="input-group-text bg-light text-muted small">د.ع</span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">الصورة الرئيسية (الغلاف)</label>
-                            {{ form.main_image }}
-                        </div>
-
-                        <div class="mb-3 bg-light p-3 rounded border">
-                            <label class="form-label fw-bold text-primary">
-                                <i class="bi bi-images"></i> صور المعرض الإضافية
-                            </label>
-                            <input type="file" name="more_images" class="form-control" multiple accept="image/*">
-                            <div class="form-text">يمكنك تحديد أكثر من صورة في وقت واحد (اضغط Ctrl أثناء الاختيار).</div>
-                        </div>
-
-
-
-                        <div class="d-flex gap-4 border p-3 rounded bg-light mb-3">
-                            <!-- خيار التفعيل -->
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
-                                    منتج نشط (يظهر في المتجر)
-                                </label>
-                            </div>
-
-                            <!-- خيار السلايدر (هذا هو الجديد) -->
-                            <div class="form-check">
-                                {{ form.is_featured }}
-                                <label class="form-check-label fw-bold text-primary" for="{{ form.is_featured.id_for_label }}">
-                                    منتج مميز (يظهر في السلايدر الرئيسي)
-                                </label>
+                            <label class="form-label">نسبة الخصم (%)</label>
+                            <div class="input-group">
+                                {{ form.discount_percentage }}
+                                <span class="input-group-text bg-light text-muted small">%</span>
                             </div>
                         </div>
 
-                        <hr>
-                        <button type="submit" class="btn btn-success px-4">حفظ</button>
-                        <a href="{% url 'dashboard_products' %}" class="btn btn-outline-secondary">إلغاء</a>
-                    </form>
+                        <div class="mb-0">
+                            <label class="form-label">الكمية المتوفرة</label>
+                            {{ form.stock_quantity }}
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
-    </div>
+    </form>
 </div>
+
+<!-- Script to remove default checkboxes classes for custom toggle -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkboxes = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+        checkboxes.forEach(chk => {
+            chk.classList.remove('form-check-input'); // Remove bootstrap class to apply custom CSS
+            chk.classList.add('toggle-checkbox');
+        });
+    });
+</script>
+
 {% endblock %}

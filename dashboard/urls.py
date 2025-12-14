@@ -42,5 +42,7 @@ urlpatterns = [
     path('users/edit/<int:pk>/', views.user_edit, name='dashboard_user_edit'),
     path('users/delete/<int:pk>/', views.user_delete, name='dashboard_user_delete'),
 
+    path('products/image/delete/<int:image_id>/', views.delete_product_image, name='dashboard_image_delete'),
+    path('products/main-image/delete/<int:pk>/', views.delete_main_image, name='dashboard_main_image_delete'),
 
 ]

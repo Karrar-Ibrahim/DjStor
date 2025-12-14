@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}اتصل بنا{% endblock %}
+
+{% block content %}
+<style>
+    .contact-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .contact-info-box {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 40px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        font-size: 1.1rem;
+    }
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 15px;
+        font-size: 1.5rem;
+    }
+    .form-control {
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        background-color: #f9f9f9;
+    }
+    .form-control:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: none;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h5 class="text-primary fw-bold text-uppercase">تواصل معنا</h5>
+        <h1 class="fw-bold">نحن هنا لمساعدتك</h1>
+        <p class="text-muted">هل لديك استفسار؟ لا تتردد في مراسلتنا.</p>
+    </div>
+
+    <div class="card contact-card">
+        <div class="row g-0">
+            <!-- معلومات الاتصال (اليسار) -->
+            <div class="col-lg-5">
+                <div class="contact-info-box">
+                    <h3 class="fw-bold mb-4">بيانات التواصل</h3>
+                    
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div>
+                            <span class="d-block opacity-75 small">العنوان</span>
+                            <span class="fw-bold">العراق، بغداد، الكرادة</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-telephone-fill"></i></div>
+                        <div>
+                            <span class="d-block opacity-75 small">الهاتف</span>
+                            <span class="fw-bold">0783 300 3554</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-envelope-fill"></i></div>
+                        <div>
+                            <span class="d-block opacity-75 small">البريد الإلكتروني</span>
+                            <span class="fw-bold">info@ishtarhost.com</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-top border-white border-opacity-25">
+                        <h6 class="mb-3">تابعنا على</h6>
+                        <div class="d-flex gap-3 fs-4">
+                            <a href="https://www.facebook.com/ishtar.host/" target="_blank" class="social-link fb" title="فيسبوك">
+                            <i class="bi bi-facebook"></i>
+                            <a href="https://www.instagram.com/ishtar.host/" target="_blank" class="social-link ig" title="انستغرام">
+                            <i class="bi bi-instagram"></i>
+                            <a href="#" class="text-white"><i class="bi bi-telegram"></i></a>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج الاتصال (اليمين) -->
+            <div class="col-lg-7 bg-white">
+                <div class="p-5">
+                    <h3 class="fw-bold mb-4 text-dark">أرسل لنا رسالة</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">الاسم الكامل</label>
+                                <input type="text" name="name" class="form-control" required placeholder="محمد علي">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">البريد الإلكتروني</label>
+                                <input type="email" name="email" class="form-control" required placeholder="name@example.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">الموضوع</label>
+                                <input type="text" name="subject" class="form-control" required placeholder="استفسار بخصوص...">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">الرسالة</label>
+                                <textarea name="message" class="form-control" rows="5" required placeholder="اكتب رسالتك هنا..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold mt-2 shadow hover-scale">
+                                    إرسال الرسالة <i class="bi bi-send ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- الخريطة (اختياري) -->
+    <div class="mt-5 rounded-4 overflow-hidden shadow-sm">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3334.613997637373!2d44.4239!3d33.2989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzPCsDE3JzU2LjAiTiA0NMKwMjUnMjYuMCJF!5e0!3m2!1sen!2siq!4v1620000000000!5m2!1sen!2siq" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+
+</div>
+{% endblock %}

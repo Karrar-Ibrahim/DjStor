@@ -535,3 +535,15 @@ def set_new_password(request):
         form = SetNewPasswordForm(user)
     
     return render(request, 'store/set_new_password.html', {'form': form})
+
+
+def about(request):
+    return render(request, 'store/about.html')
+
+def contact(request):
+    if request.method == 'POST':
+        # هنا يمكنك إضافة كود إرسال الإيميل لاحقاً
+        name = request.POST.get('name')
+        messages.success(request, f"شكراً لك {name}، تم استلام رسالتك وسنرد عليك قريباً.")
+        return redirect('contact')
+    return render(request, 'store/contact.html')

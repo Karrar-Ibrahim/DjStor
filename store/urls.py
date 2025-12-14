@@ -38,4 +38,8 @@ urlpatterns = [
     path('forgot-password/verify/', views.verify_reset_code, name='verify_reset_code'),
     path('forgot-password/set-new/', views.set_new_password, name='set_new_password'),
 
+
+    path('about/', views.about, name='about'),
+    path('contact/', views.contact, name='contact'),
+
 ]
