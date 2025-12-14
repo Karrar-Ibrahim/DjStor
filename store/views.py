@@ -13,8 +13,14 @@ from .telegram_utils import send_telegram_order
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from .forms import UserUpdateForm, ProfileUpdateForm
-
-
+import random
+from django.core.mail import send_mail
+from django.conf import settings
+from .forms import OTPVerificationForm
+    
+from django.contrib.auth.models import User
+from .forms import PasswordResetRequestForm, SetNewPasswordForm, OTPVerificationForm
+  
 
 
 
@@ -257,17 +263,90 @@ def offers(request):
     })
 
 # --- دوال المستخدمين ---
+# 1. تعديل دالة التسجيل (register)
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'تم إنشاء الحساب بنجاح للعضو {username}')
-            return redirect('login')
+            # حفظ المستخدم لكن غير نشط
+            user = form.save(commit=False)
+            user.is_active = False # <--- مهم جداً: الحساب غير مفعل
+            user.save()
+            
+            # إنشاء كود عشوائي من 6 أرقام
+            otp = str(random.randint(100000, 999999))
+            
+            # حفظ الكود في البروفايل
+            # ملاحظة: دالة create_user_profile في models.py ستنشئ البروفايل تلقائياً، نحن نحدثه فقط
+            user.profile.otp_code = otp
+            user.profile.save()
+
+            # إرسال الكود عبر الإيميل
+            subject = 'كود تفعيل حسابك - عشتار ستور'
+            message = f'مرحباً {user.first_name}،\n\nكود التحقق الخاص بك هو: {otp}\n\nشكراً لتسجيلك معنا.'
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            
+            try:
+                send_mail(subject, message, from_email, recipient_list)
+                # تخزين الإيميل في السيشن لنستخدمه في الصفحة التالية
+                request.session['auth_email'] = user.email
+                messages.info(request, f'تم إرسال كود التحقق إلى {user.email}')
+                return redirect('verify_email')
+            
+            except Exception as e:
+                user.delete() # حذف المستخدم إذا فشل إرسال الإيميل
+                messages.error(request, "فشل إرسال البريد الإلكتروني، يرجى التأكد من الإيميل.")
+
     else:
         form = UserRegisterForm()
     return render(request, 'store/register.html', {'form': form})
+
+# 2. دالة التحقق الجديدة (verify_email)
+def verify_email(request):
+    # جلب الإيميل من السيشن
+    email = request.session.get('auth_email')
+    
+    if not email:
+        messages.error(request, "جلسة غير صالحة، يرجى التسجيل مرة أخرى.")
+        return redirect('register')
+
+    if request.method == 'POST':
+        form = OTPVerificationForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['otp_code']
+            try:
+                user = User.objects.get(email=email)
+                
+                # التحقق من تطابق الكود
+                if user.profile.otp_code == code:
+                    user.is_active = True # تفعيل الحساب
+                    user.profile.otp_code = None # مسح الكود بعد الاستخدام
+                    user.save()
+                    user.profile.save()
+                    
+                    # تسجيل الدخول تلقائياً
+                    from django.contrib.auth import login
+                    login(request, user)
+                    
+                    # تنظيف السيشن
+                    del request.session['auth_email']
+                    
+                    messages.success(request, "تم تفعيل حسابك بنجاح! أهلاً بك.")
+                    return redirect('home')
+                else:
+                    messages.error(request, "كود التحقق غير صحيح.")
+            
+            except User.DoesNotExist:
+                messages.error(request, "حدث خطأ، المستخدم غير موجود.")
+    else:
+        form = OTPVerificationForm()
+
+    return render(request, 'store/verify_email.html', {'form': form, 'email': email})
+
+
+
+
 
 def order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -375,3 +454,84 @@ def profile_view(request):
 
 
 
+def forgot_password(request):
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.get(email=email)
+            
+            # إنشاء كود OTP
+            otp = str(random.randint(100000, 999999))
+            user.profile.otp_code = otp
+            user.profile.save()
+            
+            # إرسال الكود
+            subject = 'استعادة كلمة المرور - عشتار ستور'
+            message = f'مرحباً {user.first_name}،\n\nكود استعادة الحساب هو: {otp}\n\nلا تشارك هذا الكود مع أحد.'
+            
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+                
+                # حفظ ID المستخدم في السيشن للاستخدام في الخطوة القادمة
+                request.session['reset_user_id'] = user.id
+                messages.info(request, f"تم إرسال رمز التحقق إلى {email}")
+                return redirect('verify_reset_code')
+            except Exception as e:
+                messages.error(request, "حدث خطأ أثناء إرسال الإيميل.")
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, 'store/forgot_password.html', {'form': form})
+
+# 2. صفحة التحقق من كود الاستعادة
+def verify_reset_code(request):
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        form = OTPVerificationForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['otp_code']
+            user = User.objects.get(id=user_id)
+            
+            if user.profile.otp_code == code:
+                # الكود صحيح، نمسحه وننتقل لتعيين كلمة المرور
+                user.profile.otp_code = None
+                user.profile.save()
+                # نضع علامة في السيشن أن المستخدم قد اجتاز التحقق
+                request.session['reset_verified'] = True
+                return redirect('set_new_password')
+            else:
+                messages.error(request, "كود التحقق غير صحيح، حاول مرة أخرى.")
+    else:
+        form = OTPVerificationForm()
+    
+    return render(request, 'store/verify_reset_code.html', {'form': form})
+
+# 3. صفحة تعيين كلمة المرور الجديدة
+def set_new_password(request):
+    user_id = request.session.get('reset_user_id')
+    is_verified = request.session.get('reset_verified')
+    
+    if not user_id or not is_verified:
+        return redirect('forgot_password')
+    
+    user = User.objects.get(id=user_id)
+    
+    if request.method == 'POST':
+        form = SetNewPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            
+            # تنظيف السيشن
+            del request.session['reset_user_id']
+            del request.session['reset_verified']
+            
+            messages.success(request, "تم تغيير كلمة المرور بنجاح! يمكنك الدخول الآن.")
+            return redirect('login')
+    else:
+        form = SetNewPasswordForm(user)
+    
+    return render(request, 'store/set_new_password.html', {'form': form})

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}تفعيل الحساب{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 text-center p-4">
+                <div class="card-body">
+                    <div class="mb-4 text-primary">
+                        <i class="bi bi-envelope-check-fill display-1"></i>
+                    </div>
+                    
+                    <h3 class="fw-bold mb-2">تفعيل الحساب</h3>
+                    <p class="text-muted mb-4">
+                        تم إرسال رمز تحقق مكون من 6 أرقام إلى بريدك الإلكتروني:<br>
+                        <strong>{{ email }}</strong>
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4 px-5">
+                            {{ form.otp_code }}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold">
+                                تأكيد وتفعيل
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">لم يصلك الكود؟ <a href="{% url 'register' %}" class="text-decoration-none">إعادة التسجيل</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

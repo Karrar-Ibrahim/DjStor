@@ -1,49 +1,49 @@
 {% extends 'base.html' %}
- <!-- If you don't have crispy forms installed, we use manual rendering below -->
-{% load custom_filters %}
+
 {% block title %}إنشاء حساب جديد{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4 fw-bold">إنشاء حساب جديد</h3>
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-5">
+                    <h3 class="text-center mb-4 fw-bold text-primary">إنشاء حساب جديد</h3>
                     
                     <form method="post">
                         {% csrf_token %}
-                        
                         {% for field in form %}
                         <div class="mb-3">
-                            <label class="form-label">{{ field.label }}</label>
+                            <label class="form-label small fw-bold">{{ field.label }}</label>
                             {{ field }}
                             {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            <small class="text-muted">{{ field.help_text }}</small>
                             {% endif %}
                             {% for error in field.errors %}
-                            <div class="text-danger small">{{ error }}</div>
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            </div>
                             {% endfor %}
                         </div>
                         {% endfor %}
 
-                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold">تسجيل</button>
+                        <!-- زر استعادة الحساب يظهر دائماً كخيار بديل -->
+                        {% if form.errors %}
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-info-circle"></i> هل لديك حساب بالفعل ولكن نسيت كلمة المرور؟ 
+                            <a href="{% url 'forgot_password' %}" class="fw-bold text-decoration-none">استعادة الحساب</a>
+                        </div>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill mt-3">تسجيل</button>
                     </form>
 
-                    <div class="text-center mt-3">
-                        <p class="text-muted">لديك حساب بالفعل؟ <a href="{% url 'login' %}" class="text-decoration-none">سجل الدخول</a></p>
+                    <div class="text-center mt-4">
+                        <p class="text-muted small">لديك حساب بالفعل؟ <a href="{% url 'login' %}" class="text-decoration-none fw-bold">سجل الدخول</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Simple script to add bootstrap classes to django form fields automatically
-    var inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(function(input) {
-        input.classList.add('form-control');
-    });
-</script>
 {% endblock %}

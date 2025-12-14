@@ -122,12 +122,16 @@ class OrderItem(models.Model):
     
 
     # 1. نموذج لحفظ رقم الهاتف (Profile)
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone = models.CharField(max_length=11, verbose_name="رقم الهاتف")
+    # حقل جديد لحفظ كود التحقق
+    otp_code = models.CharField(max_length=6, blank=True, null=True, verbose_name="كود التحقق")
 
     def __str__(self):
         return f"ملف {self.user.username}"
+    
 
 # 2. نموذج لحفظ السلة في قاعدة البيانات (CartItem)
 class CartItem(models.Model):

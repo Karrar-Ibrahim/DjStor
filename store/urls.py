@@ -31,4 +31,11 @@ urlpatterns = [
 
     path('profile/', views.profile_view, name='profile'), 
 
+    path('verify-email/', views.verify_email, name='verify_email'),
+
+
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('forgot-password/verify/', views.verify_reset_code, name='verify_reset_code'),
+    path('forgot-password/set-new/', views.set_new_password, name='set_new_password'),
+
 ]
