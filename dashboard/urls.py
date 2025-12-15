@@ -45,4 +45,12 @@ urlpatterns = [
     path('products/image/delete/<int:image_id>/', views.delete_product_image, name='dashboard_image_delete'),
     path('products/main-image/delete/<int:pk>/', views.delete_main_image, name='dashboard_main_image_delete'),
 
+
+    path('home-sections/', views.home_sections_list, name='dashboard_home_sections'),
+    path('home-sections/add/', views.home_section_add, name='dashboard_home_section_add'),
+    path('home-sections/edit/<int:pk>/', views.home_section_edit, name='dashboard_home_section_edit'),
+    path('home-sections/delete/<int:pk>/', views.home_section_delete, name='dashboard_home_section_delete'),
+
+
+
 ]

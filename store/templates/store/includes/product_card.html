@@ -1,0 +1,45 @@
+{% load humanize %}
+{% load custom_filters %}
+
+<div class="modern-card h-100 position-relative">
+    <!-- Badges -->
+    <div class="card-badges">
+        {% if product.discount_percentage > 0 %}
+        <span class="badge-custom badge-sale">{{ product.discount_percentage }}% خصم</span>
+        {% endif %}
+    </div>
+
+    <!-- Image -->
+    <a href="{% url 'product_detail' product.slug %}" class="img-wrapper">
+        {% if product.main_image %}
+        <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+        {% else %}
+        <div class="text-muted small">لا توجد صورة</div>
+        {% endif %}
+    </a>
+
+    <!-- Content -->
+    <div class="card-content">
+        <div class="category-label">{{ product.category.name }}</div>
+        <h3 class="product-title">
+            <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark stretched-link">
+                {{ product.name }}
+            </a>
+        </h3>
+        
+        <div class="d-flex justify-content-between align-items-end">
+            <div class="price-wrapper">
+                <span class="current-price">{{ product.final_price|currency }}</span>
+                {% if product.discount_percentage > 0 %}
+                <span class="old-price">{{ product.price|currency }}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Add to Cart Button -->
+            <!-- z-index ضروري ليعمل الزر فوق الرابط الكامل -->
+            <a href="{% url 'cart_add' product.id %}" class="add-btn position-relative" style="z-index: 2;" title="أضف للسلة">
+                <i class="bi bi-plus-lg fs-5"></i>
+            </a>
+        </div>
+    </div>
+</div>

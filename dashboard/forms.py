@@ -2,7 +2,7 @@ from django import forms
 from store.models import Product, Category, Coupon
 from django import forms
 from django.contrib.auth.models import User, Permission
-
+from store.models import HomeSection
 
 
 
@@ -133,3 +133,16 @@ class StaffUserForm(forms.ModelForm):
                 user.user_permissions.set(self.cleaned_data['user_permissions'])
         return user
 
+
+class HomeSectionForm(forms.ModelForm):
+    class Meta:
+        model = HomeSection
+        fields = ['title', 'section_type', 'category', 'product_count', 'ordering', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'مثال: هواتف آيفون'}),
+            'section_type': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'product_count': forms.NumberInput(attrs={'class': 'form-control'}),
+            'ordering': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

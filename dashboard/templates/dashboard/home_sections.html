@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}إدارة واجهة المتجر{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">أقسام الصفحة الرئيسية</h2>
+            <p class="text-muted small">تحكم في ترتيب ومحتوى الصفحة الرئيسية للمتجر</p>
+        </div>
+        <a href="{% url 'dashboard_home_section_add' %}" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="bi bi-plus-lg"></i> إضافة سكشن جديد
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>الترتيب</th> <!-- عمود الترتيب -->
+                        <th>العنوان</th>
+                        <th>نوع العرض</th>
+                        <th>المحتوى</th>
+                        <th>العدد</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sec in sections %}
+                    <tr>
+                        <!-- عرض رقم الترتيب -->
+                        <td>
+                            <span class="badge bg-dark rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                {{ sec.ordering }}
+                            </span>
+                        </td>
+                        
+                        <td class="fw-bold">{{ sec.title }}</td>
+                        
+                        <td>
+                            {% if sec.section_type == 'slider' %} 
+                                <span class="badge bg-info text-dark"><i class="bi bi-collection-play"></i> شريط متحرك</span>
+                            {% else %} 
+                                <span class="badge bg-secondary"><i class="bi bi-grid-3x3"></i> شبكة</span> 
+                            {% endif %}
+                        </td>
+                        
+                        <td>{{ sec.category.name|default:"الكل (الأحدث)" }}</td>
+                        <td>{{ sec.product_count }}</td>
+                        
+                        <td>
+                            {% if sec.is_active %}
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                            {% else %}
+                                <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <div class="d-flex gap-2">
+                                <!-- زر التعديل الجديد -->
+                                <a href="{% url 'dashboard_home_section_edit' sec.id %}" class="btn btn-sm btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                
+                                <a href="{% url 'dashboard_home_section_delete' sec.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذا السكشن؟')" title="حذف">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-layout-wtf display-4 d-block mb-3"></i>
+                            لا توجد أقسام مضافة حالياً.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

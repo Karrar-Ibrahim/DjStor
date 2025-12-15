@@ -209,9 +209,19 @@
                 <p class="text-muted small mb-0">إدارة الحسابات وتوزيع الأدوار</p>
             </a>
         </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="{% url 'dashboard_home_sections' %}" class="action-card">
+                <div class="action-icon-circle bg-soft-primary"><i class="bi bi-layout-wtf"></i></div>
+                <h5 class="fw-bold">واجهة المتجر</h5>
+                <p class="text-muted small mb-0">تخصيص أقسام الصفحة الرئيسية</p>
+            </a>
+        </div>
+
         {% endif %}
 
     </div>
+
 
     <!-- روابط إضافية -->
     <div class="row g-3">
@@ -222,6 +232,11 @@
             </a>
         </div>
     </div>
+
+
+
+
+
 
 </div>
 {% endblock %}

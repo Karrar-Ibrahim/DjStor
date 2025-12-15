@@ -14,6 +14,7 @@
         position: relative;
     }
     
+    /* دائرة خلفية جمالية */
     .hero-circle {
         position: absolute;
         width: 400px;
@@ -38,12 +39,14 @@
         font-weight: 800;
         letter-spacing: -1px;
         background: linear-gradient(to right, #1e3a8a, #2563eb);
+        /* تم إصلاح الخطأ هنا بإضافة الخاصية القياسية */
         -webkit-background-clip: text;
         background-clip: text; 
         -webkit-text-fill-color: transparent;
         line-height: 1.2;
     }
 
+    /* Floating Image Animation */
     .hero-img-container img {
         max-height: 450px;
         filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2));
@@ -129,7 +132,7 @@
         display: inline-block;
     }
 
-    /* --- Product Cards Styling (Used in included file) --- */
+    /* --- Product Cards Redesigned --- */
     .product-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -182,9 +185,13 @@
         max-width: 100%;
         transition: transform 0.4s ease;
     }
-    .modern-card:hover .img-wrapper img { transform: scale(1.1); }
+    .modern-card:hover .img-wrapper img {
+        transform: scale(1.1);
+    }
 
-    .card-content { padding: 20px; }
+    .card-content {
+        padding: 20px;
+    }
     
     .category-label {
         color: #94a3b8;
@@ -234,31 +241,19 @@
         transition: 0.2s;
         cursor: pointer;
     }
-    .add-btn:hover { background: var(--primary-color); color: white; }
+    .add-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
 
-    /* CSS For Horizontal Scroll (Dynamic Sections) */
-    .horizontal-scroll-wrapper {
-        display: flex;
-        gap: 20px;
-        overflow-x: auto;
-        padding-bottom: 20px;
-        scroll-behavior: smooth;
-        padding: 10px;
-    }
-    .horizontal-scroll-wrapper::-webkit-scrollbar { height: 6px; }
-    .horizontal-scroll-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-    
-    .scroll-item {
-        min-width: 260px;
-        max-width: 260px;
-        flex: 0 0 auto;
-    }
 </style>
 
 <div class="container pb-5">
     
-    <!-- 1. Hero Section -->
+    <!-- 1. Hero Section (السلايدر العصري) -->
     <div id="heroCarousel" class="carousel slide hero-wrapper mb-5" data-bs-ride="carousel">
+        
+        <!-- Indicators -->
         <div class="carousel-indicators mb-4">
             {% for s in sliders %}
             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %} bg-primary rounded-circle" style="width: 10px; height: 10px; margin: 0 5px;"></button>
@@ -268,8 +263,9 @@
         <div class="carousel-inner">
             {% for product in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <div class="hero-circle"></div>
+                <div class="hero-circle"></div> <!-- الدائرة الخلفية -->
                 <div class="row align-items-center h-100 p-3 p-lg-5">
+                    <!-- Text Content -->
                     <div class="col-lg-6 hero-content order-2 order-lg-1 text-center text-lg-end">
                         <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-3 d-inline-block">
                             <i class="bi bi-fire me-1"></i> عروض حصرية
@@ -285,6 +281,7 @@
                         </div>
                     </div>
                     
+                    <!-- Image Content -->
                     <div class="col-lg-6 hero-img-container order-1 order-lg-2 text-center mb-4 mb-lg-0">
                         {% if product.main_image %}
                         <img src="{{ product.main_image.url }}" class="img-fluid" alt="{{ product.name }}">
@@ -293,6 +290,7 @@
                 </div>
             </div>
             {% empty %}
+            <!-- Default Slide -->
             <div class="carousel-item active">
                 <div class="row align-items-center h-100 p-5 text-center">
                     <div class="col-12">
@@ -305,7 +303,7 @@
         </div>
     </div>
 
-    <!-- 2. Features Section -->
+    <!-- 2. Features Section (المميزات) -->
     <div class="features-grid mb-5">
         <div class="feature-item">
             <div class="feature-icon"><i class="bi bi-truck"></i></div>
@@ -329,7 +327,7 @@
         </div>
     </div>
 
-    <!-- 3. Categories Grid -->
+    <!-- 3. Categories Grid (الأقسام) -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
@@ -358,34 +356,58 @@
         </div>
     </div>
 
-    <!-- 4. Dynamic Sections (الأقسام المضافة من لوحة التحكم) -->
-    {% for section in dynamic_sections %}
+    <!-- 4. Latest Products (وصل حديثاً) -->
     <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-            <h3 class="fw-bold m-0 border-start border-4 border-primary ps-3">{{ section.config.title }}</h3>
-            {% if section.config.category %}
-            <a href="{% url 'category_list' section.config.category.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">عرض الكل</a>
-            {% endif %}
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h3 class="fw-bold m-0"><i class="bi bi-stars text-warning me-2"></i> وصل حديثاً</h3>
+            <a href="{% url 'shop' %}" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-bold">عرض الكل</a>
         </div>
         
-        {% if section.config.section_type == 'grid' %}
-            <div class="product-grid">
-                {% for product in section.products %}
-                    {% include 'store/includes/product_card.html' with product=product %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="horizontal-scroll-wrapper">
-                {% for product in section.products %}
-                    <div class="scroll-item">
-                        {% include 'store/includes/product_card.html' with product=product %}
+        <div class="product-grid">
+            {% for product in latest %}
+            <div class="modern-card">
+                <!-- Badges -->
+                <div class="card-badges">
+                    {% if product.discount_percentage > 0 %}
+                    <span class="badge-custom badge-sale">{{ product.discount_percentage }}% خصم</span>
+                    {% endif %}
+                </div>
+
+                <!-- Image -->
+                <a href="{% url 'product_detail' product.slug %}" class="img-wrapper">
+                    {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                    <div class="text-muted small">لا توجد صورة</div>
+                    {% endif %}
+                </a>
+
+                <!-- Content -->
+                <div class="card-content">
+                    <div class="category-label">{{ product.category.name }}</div>
+                    <h3 class="product-title">
+                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark stretched-link">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+                    
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div class="price-wrapper">
+                            <span class="current-price">{{ product.final_price|currency }}</span>
+                            {% if product.discount_percentage > 0 %}
+                            <span class="old-price">{{ product.price|currency }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Add to Cart Button -->
+                        <a href="{% url 'cart_add' product.id %}" class="add-btn position-relative" style="z-index: 2;" title="أضف للسلة">
+                            <i class="bi bi-plus-lg fs-5"></i>
+                        </a>
                     </div>
-                {% endfor %}
+                </div>
             </div>
-        {% endif %}
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
-
-
 </div>
 {% endblock %}

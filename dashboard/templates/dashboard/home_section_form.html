@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title|default:"إضافة سكشن جديد" }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-layout-wtf me-2"></i> {{ title|default:"إعدادات السكشن" }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- العنوان -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">عنوان السكشن</label>
+                            {{ form.title }}
+                            <div class="form-text">هذا العنوان سيظهر للزبائن في الصفحة الرئيسية.</div>
+                        </div>
+
+                        <div class="row">
+                            <!-- نوع العرض -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">طريقة العرض</label>
+                                {{ form.section_type }}
+                            </div>
+                            <!-- القسم المرتبط -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">القسم المرتبط (Category)</label>
+                                {{ form.category }}
+                                <div class="form-text small">اتركه فارغاً لعرض أحدث المنتجات من كل الأقسام.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- عدد المنتجات -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">عدد المنتجات</label>
+                                {{ form.product_count }}
+                            </div>
+                            
+                            <!-- الترتيب -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-primary">ترتيب الظهور</label>
+                                {{ form.ordering }}
+                                <div class="form-text fw-bold text-dark">
+                                    * الرقم الأقل يظهر أولاً (1 يظهر قبل 2).
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- التفعيل -->
+                        <div class="mb-4 form-check bg-light p-3 rounded border">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">
+                                تفعيل السكشن (عرضه في الموقع)
+                            </label>
+                        </div>
+
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary fw-bold py-2 shadow-sm">حفظ التغييرات</button>
+                            <a href="{% url 'dashboard_home_sections' %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

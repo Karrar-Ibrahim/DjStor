@@ -202,3 +202,28 @@ class Wishlist(models.Model):
 
     class Meta:
         unique_together = ('user', 'product') # منع تكرار نفس المنتج في المفضلة
+
+
+
+
+
+class HomeSection(models.Model):
+    SECTION_TYPES = (
+        ('slider', 'شريط متحرك (Slider)'),
+        ('grid', 'شبكة منتجات (Grid)'),
+    )
+
+    title = models.CharField(max_length=100, verbose_name="عنوان السكشن")
+    section_type = models.CharField(max_length=20, choices=SECTION_TYPES, default='grid', verbose_name="طريقة العرض")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="القسم (اختياري)")
+    product_count = models.IntegerField(default=8, verbose_name="عدد المنتجات المعروضة")
+    ordering = models.IntegerField(default=0, verbose_name="ترتيب الظهور")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+
+    class Meta:
+        ordering = ['ordering']
+        verbose_name = "قسم الصفحة الرئيسية"
+        verbose_name_plural = "أقسام الصفحة الرئيسية"
+
+    def __str__(self):
+        return self.title

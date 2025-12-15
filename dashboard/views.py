@@ -18,6 +18,17 @@ from store.models import ProductImage # تأكد من وجود هذا الاست
 # استيراد الفورم
 from .forms import ProductForm, CategoryForm, CouponForm, StaffUserForm
 
+from store.models import HomeSection
+from .forms import HomeSectionForm
+
+
+
+
+
+
+
+
+
 # --- الصفحة الرئيسية للوحة التحكم ---
 @staff_member_required
 def dashboard_home(request):
@@ -374,3 +385,48 @@ def delete_main_image(request, pk):
         messages.success(request, "تم حذف الصورة الرئيسية للمنتج.")
     
     return redirect('dashboard_product_edit', pk=pk)
+
+
+
+@staff_member_required
+def home_sections_list(request):
+    sections = HomeSection.objects.all()
+    return render(request, 'dashboard/home_sections.html', {'sections': sections})
+
+@staff_member_required
+def home_section_add(request):
+    if request.method == 'POST':
+        form = HomeSectionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "تم إضافة السكشن بنجاح.")
+            return redirect('dashboard_home_sections')
+    else:
+        form = HomeSectionForm()
+    return render(request, 'dashboard/home_section_form.html', {'form': form})
+
+@staff_member_required
+def home_section_delete(request, pk):
+    section = get_object_or_404(HomeSection, pk=pk)
+    section.delete()
+    messages.success(request, "تم حذف السكشن.")
+    return redirect('dashboard_home_sections')
+
+
+
+@staff_member_required
+def home_section_edit(request, pk):
+    section = get_object_or_404(HomeSection, pk=pk)
+    if request.method == 'POST':
+        form = HomeSectionForm(request.POST, instance=section)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "تم تحديث السكشن بنجاح.")
+            return redirect('dashboard_home_sections')
+    else:
+        form = HomeSectionForm(instance=section)
+    
+    return render(request, 'dashboard/home_section_form.html', {
+        'form': form,
+        'title': f'تعديل السكشن: {section.title}'
+    })

@@ -20,7 +20,10 @@ from .forms import OTPVerificationForm
     
 from django.contrib.auth.models import User
 from .forms import PasswordResetRequestForm, SetNewPasswordForm, OTPVerificationForm
-  
+    
+from .models import Product, Category, Order, OrderItem, Coupon, Review, Profile, HomeSection
+
+    
 
 
 
@@ -547,3 +550,38 @@ def contact(request):
         messages.success(request, f"شكراً لك {name}، تم استلام رسالتك وسنرد عليك قريباً.")
         return redirect('contact')
     return render(request, 'store/contact.html')
+
+
+
+
+def home(request):
+    # 1. السلايدر الرئيسي (ثابت) - للمنتجات المميزة فقط
+    main_sliders = Product.objects.filter(is_active=True, is_featured=True).order_by('-updated_at')[:5]
+    
+    # 2. السكشنات الديناميكية (التي يضيفها الأدمن)
+    dynamic_sections = []
+    sections_db = HomeSection.objects.filter(is_active=True)
+    
+    for sec in sections_db:
+        # جلب المنتجات لهذا السكشن
+        products = Product.objects.filter(is_active=True)
+        
+        # إذا حدد الأدمن قسماً معيناً، نفلتر عليه
+        if sec.category:
+            # استخدام دالة get_all_category_children لجلب الفرعية أيضاً
+            cats = get_all_category_children(sec.category)
+            products = products.filter(category__in=cats)
+        
+        # الترتيب حسب الأحدث وأخذ العدد المحدد
+        products = products.order_by('-created_at')[:sec.product_count]
+        
+        if products.exists():
+            dynamic_sections.append({
+                'config': sec,       # إعدادات السكشن (العنوان، النوع)
+                'products': products # قائمة المنتجات
+            })
+
+    return render(request, 'store/home.html', {
+        'sliders': main_sliders,
+        'dynamic_sections': dynamic_sections, # <--- المتغير الجديد
+    })
