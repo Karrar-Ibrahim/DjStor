@@ -1,20 +1,7 @@
-# Python
 __pycache__/
-*.py[cod]
-*.log
-
-# Virtual env
-venv/
-.venv/
-env/
-
-# Django
+*.pyc
 db.sqlite3
 media/
 staticfiles/
-
-# OS / IDE
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+venv/
+.venv/
